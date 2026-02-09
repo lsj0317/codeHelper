@@ -1,0 +1,247 @@
+{
+  "categories": [
+    {
+      "id": "essentials",
+      "name": "🔥 필수 이벤트",
+      "items": [
+        {
+          "id": "click",
+          "name": "클릭 이벤트 (동적)",
+          "inputs": [
+            { "label": "선택자", "id": "selector", "type": "text", "default": ".btn-save" },
+            { "label": "함수명", "id": "funcName", "type": "text", "default": "fn_save" }
+          ],
+          "template": "$(document).on('click', '${selector}', function(e) {\n  e.preventDefault();\n  ${funcName}();\n});\n\nfunction ${funcName}() {\n  alert('실행되었습니다.');\n}",
+          "html_example": "\n<button type=\"button\" class=\"${selector_raw}\">저장하기</button>"
+        },
+        {
+          "id": "enter-key",
+          "name": "엔터키 감지",
+          "inputs": [
+            { "label": "입력창 ID", "id": "selector", "type": "text", "default": "#searchKeyword" },
+            { "label": "실행 함수", "id": "funcName", "type": "text", "default": "doSearch" }
+          ],
+          "template": "$('${selector}').on('keyup', function(e) {\n  if (e.key === 'Enter' || e.keyCode === 13) {\n    ${funcName}();\n  }\n});",
+          "html_example": "\n<input type=\"text\" id=\"${selector_raw}\" placeholder=\"검색어를 입력하세요\">"
+        }
+      ]
+    },
+    {
+      "id": "forms",
+      "name": "📝 폼 & 체크박스",
+      "items": [
+        {
+          "id": "check-all",
+          "name": "전체 선택/해제",
+          "inputs": [
+            { "label": "전체체크 ID", "id": "allId", "type": "text", "default": "#checkAll" },
+            { "label": "개별체크 Class", "id": "itemClass", "type": "text", "default": ".chk-item" }
+          ],
+          "template": "$('${allId}').on('click', function() {\n  $('${itemClass}').prop('checked', $(this).is(':checked'));\n});",
+          "html_example": "\n<input type=\"checkbox\" id=\"${allId_raw}\">\n\n\n<input type=\"checkbox\" class=\"${itemClass_raw}\">\n<input type=\"checkbox\" class=\"${itemClass_raw}\">"
+        },
+        {
+          "id": "input-only-num",
+          "name": "숫자만 입력 제한",
+          "inputs": [
+            { "label": "입력창 Class", "id": "selector", "type": "text", "default": ".only-num" }
+          ],
+          "template": "$(document).on('input', '${selector}', function() {\n  $(this).val($(this).val().replace(/[^0-9]/g, ''));\n});",
+          "html_example": "<input type=\"text\" class=\"${selector_raw}\" placeholder=\"숫자만 입력 가능\">"
+        }
+      ]
+    },
+    {
+      "id": "ui-interaction",
+      "name": "✨ UI 인터랙션",
+      "items": [
+        {
+          "id": "tab-menu",
+          "name": "탭 메뉴 전환",
+          "inputs": [
+            { "label": "탭버튼 Class", "id": "btn", "type": "text", "default": ".tab-btn" },
+            { "label": "활성 Class명", "id": "active", "type": "text", "default": "active" }
+          ],
+          "template": "$('${btn}').on('click', function() {\n  var idx = $(this).index();\n  $('${btn}').removeClass('${active}');\n  $(this).addClass('${active}');\n  $('.tab-content').hide().eq(idx).show();\n});",
+          "html_example": "<div class=\"tab-wrapper\">\n  <button class=\"${btn_raw} active\">탭1</button>\n  <button class=\"${btn_raw}\">탭2</button>\n</div>\n\n<div class=\"tab-content\">내용1</div>\n<div class=\"tab-content\" style=\"display:none;\">내용2</div>"
+        },
+        {
+          "id": "modal-control",
+          "name": "모달 열기/닫기",
+          "inputs": [
+            { "label": "모달 ID", "id": "modalId", "type": "text", "default": "#myModal" },
+            { "label": "열기버튼 ID", "id": "btnId", "type": "text", "default": "#openBtn" }
+          ],
+          "template": "$('${btnId}').on('click', function() {\n  $('${modalId}').fadeIn(200);\n});\n\n$('.btn-close').on('click', function() {\n  $('${modalId}').fadeOut(200);\n});",
+          "html_example": "\n<button id=\"${btnId_raw}\">모달 열기</button>\n\n\n<div id=\"${modalId_raw}\" style=\"display:none;\">\n  <div class=\"modal-body\">\n    <p>모달 내용</p>\n    <button class=\"btn-close\">닫기</button>\n  </div>\n</div>"
+        }
+      ]
+    },
+    {
+      "id": "utils",
+      "name": "🛠️ 실무 유틸리티",
+      "items": [
+        {
+          "id": "phone-format",
+          "name": "전화번호 하이픈 자동",
+          "inputs": [
+            { "label": "선택자", "id": "selector", "type": "text", "default": ".phone-check" }
+          ],
+          "template": "$(document).on('keyup', '${selector}', function() {\n  var val = $(this).val().replace(/[^0-9]/g, '');\n  if (val.length < 4) $(this).val(val);\n  else if (val.length < 7) $(this).val(val.substr(0, 3) + '-' + val.substr(3));\n  else if (val.length < 11) $(this).val(val.substr(0, 3) + '-' + val.substr(3, 3) + '-' + val.substr(6));\n  else $(this).val(val.substr(0, 3) + '-' + val.substr(3, 4) + '-' + val.substr(7));\n});",
+          "html_example": "<input type=\"text\" class=\"${selector_raw}\" maxlength=\"13\" placeholder=\"010-0000-0000\">"
+        },
+        {
+          "id": "add-comma",
+          "name": "천 단위 콤마",
+          "inputs": [
+            { "label": "함수명", "id": "name", "type": "text", "default": "fn_comma" }
+          ],
+          "template": "function ${name}(num) {\n  return num.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');\n}\n\n// 사용 예: console.log(${name}(1250000));",
+          "html_example": ""
+        }
+      ]
+    },
+    {
+      "id": "grid",
+      "name": "📊 그리드/테이블",
+      "items": [
+        {
+          "id": "row-add",
+          "name": "테이블 행 추가",
+          "inputs": [
+            { "label": "테이블 ID", "id": "tableId", "type": "text", "default": "#dataGrid" },
+            { "label": "버튼 ID", "id": "btnAdd", "type": "text", "default": "#rowAddBtn" }
+          ],
+          "template": "$('${btnAdd}').on('click', function() {\n  var tr = '<tr><td><input type=\"text\"></td></tr>';\n  $('${tableId} tbody').append(tr);\n});",
+          "html_example": "<button id=\"${btnAdd_raw}\">행 추가</button>\n\n<table id=\"${tableId_raw}\">\n  <tbody>\n    <tr><td><input type=\"text\"></td></tr>\n  </tbody>\n</table>"
+        }
+      ]
+    },
+    {
+      "id": "traversing",
+      "name": "🔍 요소 탐색 (Traversing)",
+      "items": [
+        {
+          "id": "closest-find",
+          "name": "부모 찾고 자식 선택",
+          "inputs": [
+            { "label": "기준 선택자", "id": "start", "type": "text", "default": ".btn-edit" },
+            { "label": "상위 부모", "id": "parent", "type": "text", "default": "tr" },
+            { "label": "찾을 자식", "id": "child", "type": "text", "default": ".input-name" }
+          ],
+          "template": "$(document).on('click', '${start}', function() {\n  var $val = $(this).closest('${parent}').find('${child}').val();\n  console.log('찾은 값:', $val);\n});",
+          "html_example": "<table>\n  <tr>\n    <td><input type=\"text\" class=\"${child_raw}\" value=\"홍길동\"></td>\n    <td><button class=\"${start_raw}\">수정</button></td>\n  </tr>\n</table>"
+        },
+        {
+          "id": "siblings-toggle",
+          "name": "형제 요소 제어 (아코디언)",
+          "inputs": [
+            { "label": "클릭 요소", "id": "target", "type": "text", "default": ".title" },
+            { "label": "보여줄 내용", "id": "content", "type": "text", "default": ".desc" }
+          ],
+          "template": "$('${target}').on('click', function() {\n  $(this).next('${content}').slideToggle();\n  $(this).siblings('${target}').next('${content}').slideUp();\n});",
+          "html_example": "<div class=\"${target_raw}\">제목 1</div>\n<div class=\"${content_raw}\" style=\"display:none;\">내용 1</div>\n<div class=\"${target_raw}\">제목 2</div>\n<div class=\"${content_raw}\" style=\"display:none;\">내용 2</div>"
+        }
+      ]
+    },
+    {
+      "id": "attributes",
+      "name": "🏷️ 속성 & 클래스 제어",
+      "items": [
+        {
+          "id": "attr-toggle",
+          "name": "입력창 활성/비활성 (Disabled)",
+          "inputs": [
+            { "label": "체크박스 ID", "id": "chkId", "type": "text", "default": "#chkEdit" },
+            { "label": "입력창 ID", "id": "inputId", "type": "text", "default": "#userName" }
+          ],
+          "template": "$('${chkId}').on('change', function() {\n  var isChecked = $(this).is(':checked');\n  $('${inputId}').prop('disabled', !isChecked);\n});",
+          "html_example": "수정가능 <input type=\"checkbox\" id=\"${chkId_raw}\">\n<input type=\"text\" id=\"${inputId_raw}\" disabled>"
+        },
+        {
+          "id": "data-attr",
+          "name": "Data 속성 읽기/쓰기",
+          "inputs": [
+            { "label": "요소 선택자", "id": "selector", "type": "text", "default": ".user-item" },
+            { "label": "데이터 키값", "id": "key", "type": "text", "default": "user-no" }
+          ],
+          "template": "$('${selector}').on('click', function() {\n  var userNo = $(this).data('${key}');\n  console.log('회원번호:', userNo);\n  \n  // 값 변경 시\n  $(this).data('${key}', 'new-value');\n});",
+          "html_example": "<div class=\"${selector_raw}\" data-${key_raw}=\"12345\">회원정보 보기</div>"
+        }
+      ]
+    },
+    {
+      "id": "global-ajax",
+      "name": "🌍 글로벌 AJAX & 로딩",
+      "items": [
+        {
+          "id": "ajax-loading",
+          "name": "전역 로딩바 표시 (Start/Stop)",
+          "inputs": [
+            { "label": "로딩바 ID", "id": "loadingId", "type": "text", "default": "#loadingBar" }
+          ],
+          "template": "$(document).ajaxStart(function() {\n  $('${loadingId}').show();\n}).ajaxStop(function() {\n  $('${loadingId}').hide();\n});",
+          "html_example": "\n<div id=\"${loadingId_raw}\" style=\"display:none; position:fixed; top:50%; left:50%;\">\n  <img src=\"loading.gif\" alt=\"loading\">\n</div>"
+        },
+        {
+          "id": "ajax-setup",
+          "name": "AJAX 기본설정 (CSRF 등)",
+          "inputs": [
+            { "label": "헤더 이름", "id": "header", "type": "text", "default": "X-CSRF-TOKEN" }
+          ],
+          "template": "$.ajaxSetup({\n  headers: {\n    '${header}': $('meta[name=\"_csrf\"]').attr('content')\n  },\n  error: function(xhr) {\n    if(xhr.status === 401) alert('세션이 만료되었습니다.');\n  }\n});",
+          "html_example": "\n<meta name=\"_csrf\" content=\"random-token-value\">"
+        }
+      ]
+    },
+    {
+      "id": "advanced-ui",
+      "name": "🎨 고급 UI 제어",
+      "items": [
+        {
+          "id": "scroll-spy",
+          "name": "스크롤 위치 감지 (ScrollSpy)",
+          "inputs": [
+            { "label": "헤더 ID", "id": "headerId", "type": "text", "default": "#mainHeader" }
+          ],
+          "template": "$(window).on('scroll', function() {\n  var scrollTop = $(window).scrollTop();\n  if (scrollTop > 100) {\n    $('${headerId}').addClass('sticky');\n  } else {\n    $('${headerId}').removeClass('sticky');\n  }\n});",
+          "html_example": "<header id=\"${headerId_raw}\">상단 메뉴</header>\n<div style=\"height:2000px;\">스크롤용 긴 콘텐츠</div>"
+        },
+        {
+          "id": "outside-click",
+          "name": "영역 밖 클릭 시 닫기",
+          "inputs": [
+            { "label": "팝업 ID", "id": "popupId", "type": "text", "default": ".popup-layer" }
+          ],
+          "template": "$(document).on('mouseup', function(e) {\n  var container = $('${popupId}');\n  if (!container.is(e.target) && container.has(e.target).length === 0) {\n    container.hide();\n  }\n});",
+          "html_example": "<div class=\"${popupId_raw}\">팝업창 내용 (이곳 밖을 클릭하면 닫힙니다)</div>"
+        }
+      ]
+    },
+    {
+      "id": "external-libs",
+      "name": "📦 외부 라이브러리 확장",
+      "items": [
+        {
+          "id": "sweetalert-confirm",
+          "name": "SweetAlert2 삭제 확인창",
+          "inputs": [
+            { "label": "확인 메시지", "id": "msg", "type": "text", "default": "정말 삭제하시겠습니까?" },
+            { "label": "성공 함수명", "id": "callback", "type": "text", "default": "fn_delete" }
+          ],
+          "template": "Swal.fire({\n  title: '확인',\n  text: '${msg}',\n  icon: 'warning',\n  showCancelButton: true,\n  confirmButtonColor: '#3085d6',\n  cancelButtonColor: '#d33',\n  confirmButtonText: '승인',\n  cancelButtonText: '취소'\n}).then((result) => {\n  if (result.isConfirmed) {\n    ${callback}();\n  }\n});",
+          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/sweetalert2@11\"></script>\n<button type=\"button\" onclick=\"fn_confirm()\">삭제 버튼</button>"
+        },
+        {
+          "id": "dayjs-format",
+          "name": "Day.js 날짜 포맷 변환",
+          "inputs": [
+            { "label": "포맷 형식", "id": "format", "type": "text", "default": "YYYY-MM-DD" }
+          ],
+          "template": "// 현재 날짜를 지정한 포맷으로 출력\nvar today = dayjs().format('${format}');\nconsole.log('오늘 날짜:', today);\n\n// 특정 날짜 가감 (7일 뒤)\nvar nextWeek = dayjs().add(7, 'day').format('${format}');",
+          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js\"></script>"
+        }
+      ]
+    }
+  ]
+}
