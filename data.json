@@ -2,58 +2,181 @@
   "categories": [
     {
       "id": "essentials",
-      "name": "🔥 필수 이벤트",
+      "name": "필수 이벤트",
       "items": [
         {
           "id": "click",
-          "name": "클릭 이벤트 (동적)",
+          "name": "클릭 이벤트 (동적 바인딩)",
           "inputs": [
             { "label": "선택자", "id": "selector", "type": "text", "default": ".btn-save" },
             { "label": "함수명", "id": "funcName", "type": "text", "default": "fn_save" }
           ],
           "template": "$(document).on('click', '${selector}', function(e) {\n  e.preventDefault();\n  ${funcName}();\n});\n\nfunction ${funcName}() {\n  alert('실행되었습니다.');\n}",
-          "html_example": "\n<button type=\"button\" class=\"${selector_raw}\">저장하기</button>"
+          "html_example": "\n<button type=\"button\" class=\"${selector_raw}\">저장하기</button>",
+          "description": "1. `$(document).on('click', ...)` 방식을 사용하면, 페이지 로딩 후에 자바스크립트로 새로 추가된 버튼(동적 요소)에도 클릭 이벤트가 정상적으로 작동합니다.\n2. `e.preventDefault()`는 `<a>` 태그나 `submit` 버튼 클릭 시 페이지가 이동하거나 새로고침되는 기본 동작을 막아줍니다.",
+          "ai_prompt": "jQuery를 사용해서 '${selector}' 클래스를 가진 요소를 클릭했을 때 '${funcName}' 함수가 실행되도록 코드를 짜줘. 나중에 동적으로 추가되는 요소에도 이벤트가 먹혀야 해."
         },
         {
           "id": "enter-key",
-          "name": "엔터키 감지",
+          "name": "엔터키 감지 (검색)",
           "inputs": [
             { "label": "입력창 ID", "id": "selector", "type": "text", "default": "#searchKeyword" },
-            { "label": "실행 함수", "id": "funcName", "type": "text", "default": "doSearch" }
+            { "label": "실행 함수", "id": "funcName", "type": "text", "default": "fn_search" }
           ],
           "template": "$('${selector}').on('keyup', function(e) {\n  if (e.key === 'Enter' || e.keyCode === 13) {\n    ${funcName}();\n  }\n});",
-          "html_example": "\n<input type=\"text\" id=\"${selector_raw}\" placeholder=\"검색어를 입력하세요\">"
+          "html_example": "\n<input type=\"text\" id=\"${selector_raw}\" placeholder=\"검색어를 입력하세요\">",
+          "description": "1. `keyup` 이벤트는 키보드를 눌렀다가 뗄 때 발생합니다.\n2. `e.key === 'Enter'`는 최신 브라우저용, `e.keyCode === 13`은 구형 브라우저 호환용 조건입니다.",
+          "ai_prompt": "jQuery로 '${selector}' 입력창에서 엔터키를 쳤을 때 '${funcName}' 함수가 실행되는 검색 기능을 만들어줘."
+        },
+        {
+          "id": "window-resize",
+          "name": "창 크기 변경 감지 (Debounce)",
+          "inputs": [
+            { "label": "지연시간(ms)", "id": "delay", "type": "number", "default": "200" }
+          ],
+          "template": "var resizeTimer;\n$(window).on('resize', function() {\n  clearTimeout(resizeTimer);\n  resizeTimer = setTimeout(function() {\n    console.log('Resized:', $(window).width());\n    // 리사이즈 종료 후 실행할 로직\n  }, ${delay});\n});",
+          "html_example": "<!-- 브라우저 창 크기를 조절해보세요 -->",
+          "description": "1. 창 크기를 조절할 때 `resize` 이벤트가 1초에 수십 번 발생하여 성능이 저하될 수 있습니다.\n2. `setTimeout`과 `clearTimeout`을 사용하여, 사용자가 창 조절을 멈춘 후 ${delay}ms가 지났을 때 딱 한 번만 코드를 실행합니다 (디바운싱 기법).",
+          "ai_prompt": "jQuery로 브라우저 창 크기가 변경될 때마다 로그를 찍고 싶은데, 너무 자주 실행되지 않게 디바운싱(Debounce) 처리를 해서 ${delay}ms 뒤에 실행되게 해줘."
         }
       ]
     },
     {
       "id": "forms",
-      "name": "📝 폼 & 체크박스",
+      "name": "폼 & 유효성 검사",
       "items": [
         {
           "id": "check-all",
-          "name": "전체 선택/해제",
+          "name": "체크박스 전체 선택/해제",
           "inputs": [
             { "label": "전체체크 ID", "id": "allId", "type": "text", "default": "#checkAll" },
             { "label": "개별체크 Class", "id": "itemClass", "type": "text", "default": ".chk-item" }
           ],
-          "template": "$('${allId}').on('click', function() {\n  $('${itemClass}').prop('checked', $(this).is(':checked'));\n});",
-          "html_example": "\n<input type=\"checkbox\" id=\"${allId_raw}\">\n\n\n<input type=\"checkbox\" class=\"${itemClass_raw}\">\n<input type=\"checkbox\" class=\"${itemClass_raw}\">"
+          "template": "// 전체 선택 클릭 시\n$('${allId}').on('click', function() {\n  $('${itemClass}').prop('checked', $(this).is(':checked'));\n});\n\n// 개별 선택 클릭 시 전체 선택 상태 변경\n$(document).on('click', '${itemClass}', function() {\n  var total = $('${itemClass}').length;\n  var checked = $('${itemClass}:checked').length;\n  $('${allId}').prop('checked', total === checked);\n});",
+          "html_example": "<label><input type=\"checkbox\" id=\"${allId_raw}\"> 전체 선택</label>\n<hr>\n<label><input type=\"checkbox\" class=\"${itemClass_raw}\"> 항목 1</label>\n<label><input type=\"checkbox\" class=\"${itemClass_raw}\"> 항목 2</label>",
+          "description": "1. 전체 선택 체크박스를 누르면, 하위 항목들의 `checked` 속성을 전체 선택 박스와 동일하게 맞춥니다.\n2. 하위 항목을 하나씩 누를 때마다, 전체 개수와 체크된 개수를 비교하여 모두 체크되었을 때만 전체 선택 박스를 체크합니다.",
+          "ai_prompt": "jQuery로 게시판 리스트의 체크박스 전체 선택/해제 기능을 구현해줘. '${allId}'를 누르면 '${itemClass}'들이 다 선택되고, 하나라도 해제하면 전체 선택이 풀려야 해."
         },
         {
           "id": "input-only-num",
-          "name": "숫자만 입력 제한",
+          "name": "숫자만 입력 (실시간)",
           "inputs": [
             { "label": "입력창 Class", "id": "selector", "type": "text", "default": ".only-num" }
           ],
           "template": "$(document).on('input', '${selector}', function() {\n  $(this).val($(this).val().replace(/[^0-9]/g, ''));\n});",
-          "html_example": "<input type=\"text\" class=\"${selector_raw}\" placeholder=\"숫자만 입력 가능\">"
+          "html_example": "<input type=\"text\" class=\"${selector_raw}\" placeholder=\"숫자만 입력 가능\">",
+          "description": "1. `input` 이벤트는 키보드 입력뿐만 아니라 마우스 붙여넣기 등 값이 변하는 모든 순간을 감지합니다.\n2. 정규식 `/[^0-9]/g`는 숫자가 아닌 모든 문자를 찾아내어 빈 문자열로 치환(삭제)합니다.",
+          "ai_prompt": "jQuery로 '${selector}' 클래스를 가진 입력창에 숫자 이외의 문자는 아예 입력되지 않도록 실시간으로 막아줘. 정규식을 사용해줘."
+        },
+        {
+          "id": "input-korean",
+          "name": "한글만 입력",
+          "inputs": [
+            { "label": "입력창 Class", "id": "selector", "type": "text", "default": ".only-kor" }
+          ],
+          "template": "$(document).on('input', '${selector}', function() {\n  $(this).val($(this).val().replace(/[a-z0-9]|[ \\[\\]{}()<>?|`~!@#$%^&*-_+=,.;:\"'\\]/g, ''));\n});",
+          "html_example": "<input type=\"text\" class=\"${selector_raw}\" placeholder=\"한글만 입력 가능\">",
+          "description": "1. 영문, 숫자, 특수문자를 모두 찾아내어 제거하는 방식입니다.\n2. 한글(자음, 모음 포함)만 남기고 나머지는 입력 즉시 삭제됩니다.",
+          "ai_prompt": "jQuery로 '${selector}' 입력창에 한글만 입력되게 하고 싶어. 영어, 숫자, 특수문자가 들어오면 바로 지워버리는 코드를 짜줘."
+        },
+        {
+          "id": "textarea-auto",
+          "name": "텍스트영역 자동 높이 조절",
+          "inputs": [
+            { "label": "Textarea Class", "id": "selector", "type": "text", "default": ".auto-height" }
+          ],
+          "template": "$(document).on('input', '${selector}', function() {\n  this.style.height = 'auto';\n  this.style.height = (this.scrollHeight) + 'px';\n});",
+          "html_example": "<textarea class=\"${selector_raw}\" rows=\"1\" style=\"overflow:hidden; resize:none;\" placeholder=\"내용을 입력하면 늘어납니다.\"></textarea>",
+          "description": "1. 내용이 입력될 때마다 높이를 일단 `auto`로 줄여서 스크롤 높이를 재계산합니다.\n2. 그 후 `scrollHeight`(내용의 전체 높이)만큼 높이를 다시 지정하여 늘어나는 효과를 줍니다.",
+          "ai_prompt": "jQuery로 '${selector}' 텍스트박스(textarea)에 글을 쓸 때마다 내용 길이에 맞춰서 높이가 자동으로 늘어나는 코드를 작성해줘."
+        },
+        {
+          "id": "max-length-view",
+          "name": "글자수 세기 (Byte/Length)",
+          "inputs": [
+            { "label": "입력창 ID", "id": "input", "type": "text", "default": "#content" },
+            { "label": "카운터 ID", "id": "counter", "type": "text", "default": "#counter" },
+            { "label": "최대 글자수", "id": "max", "type": "number", "default": "1000" }
+          ],
+          "template": "$('${input}').on('input', function() {\n  var len = $(this).val().length;\n  $('${counter}').text(len + ' / ${max}');\n  \n  if(len > ${max}) {\n    alert('${max}자까지만 입력 가능합니다.');\n    $(this).val($(this).val().substring(0, ${max}));\n  }\n});",
+          "html_example": "<textarea id=\"${input_raw}\" style=\"width:100%; height:100px;\"></textarea>\n<div style=\"text-align:right; font-size:12px; color:#666;\">\n  <span id=\"${counter_raw}\">0 / ${max}</span>\n</div>",
+          "description": "1. 입력된 값의 `length` 속성을 실시간으로 체크하여 화면에 표시합니다.\n2. 최대 글자수를 초과하면 경고창을 띄우고, `substring`을 이용해 초과된 뒷부분을 잘라냅니다.",
+          "ai_prompt": "jQuery로 '${input}' 입력창의 글자수를 실시간으로 세어서 '${counter}'에 '현재/최대' 형식으로 보여주고, ${max}자가 넘으면 입력을 막는 기능을 만들어줘."
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "name": "보안 & 정규식 검증",
+      "items": [
+        {
+          "id": "email-regex",
+          "name": "이메일 형식 검사",
+          "inputs": [
+            { "label": "이메일 값", "id": "val", "type": "text", "default": "test@example.com" }
+          ],
+          "template": "function isValidEmail(email) {\n  var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$/i;\n  return regex.test(email);\n}\n\n// 사용 예시\nif(!isValidEmail('${val}')) {\n  alert('올바른 이메일 형식이 아닙니다.');\n}",
+          "html_example": "",
+          "description": "1. 정규식 `^...$`는 문자열의 시작과 끝을 의미하여 전체가 형식에 맞는지 검사합니다.\n2. `@` 기호 앞뒤로 허용된 문자열이 오고, 마지막에 `.com` 같은 도메인이 오는지 확인합니다.",
+          "ai_prompt": "자바스크립트로 이메일 주소 형식이 올바른지 검증하는 `isValidEmail` 함수를 정규식을 사용해서 만들어줘."
+        },
+        {
+          "id": "password-check",
+          "name": "비밀번호 복잡도 (영문/숫자/특수)",
+          "inputs": [
+            { "label": "비밀번호 ID", "id": "pw", "type": "text", "default": "#userPw" }
+          ],
+          "template": "$('${pw}').on('change', function() {\n  var pw = $(this).val();\n  var num = pw.search(/[0-9]/g);\n  var eng = pw.search(/[a-z]/ig);\n  var spe = pw.search(/[`~!@@#$%^&*|₩₩₩'₩\";:₩/?]/gi);\n\n  if(pw.length < 8 || pw.length > 20){\n    alert(\"8자리 ~ 20자리 이내로 입력해주세요.\");\n    return false;\n  }else if(pw.search(/\\s/) != -1){\n    alert(\"비밀번호는 공백 없이 입력해주세요.\");\n    return false;\n  }else if(num < 0 || eng < 0 || spe < 0 ){\n    alert(\"영문, 숫자, 특수문자를 혼합하여 입력해주세요.\");\n    return false;\n  }\n  return true;\n});",
+          "html_example": "<input type=\"password\" id=\"${pw_raw}\" placeholder=\"비밀번호 입력\">",
+          "description": "1. `search()` 메서드는 정규식과 일치하는 인덱스를 반환하며, 없으면 -1을 반환합니다.\n2. 숫자, 영문, 특수문자가 각각 하나 이상 포함되어 있는지(`index >= 0`) 확인하여 보안 강도를 체크합니다.",
+          "ai_prompt": "jQuery로 '${pw}' 비밀번호 입력창의 유효성 검사를 해줘. 8~20자리여야 하고, 영문/숫자/특수문자가 반드시 하나씩은 포함되어야 해."
+        },
+        {
+          "id": "prevent-copy",
+          "name": "복사/붙여넣기/우클릭 방지",
+          "inputs": [
+            { "label": "적용 대상", "id": "target", "type": "text", "default": "body" }
+          ],
+          "template": "$('${target}').on('contextmenu dragstart selectstart', function(e){\n  e.preventDefault();\n  return false;\n});\n\n$('${target}').on('keydown', function(e){\n  // Ctrl+C, Ctrl+V, Ctrl+S 방지\n  if (e.ctrlKey && (e.keyCode == 67 || e.keyCode == 86 || e.keyCode == 83)) {\n    e.preventDefault();\n    return false;\n  }\n});",
+          "html_example": "<!-- 이 영역에서는 우클릭과 복사가 금지됩니다 -->",
+          "description": "1. `contextmenu`(우클릭), `dragstart`(드래그), `selectstart`(텍스트 선택) 이벤트를 모두 막습니다.\n2. 키보드 이벤트에서 `Ctrl` 키가 눌린 상태로 C, V, S 키가 눌리면 동작을 취소시킵니다.",
+          "ai_prompt": "jQuery로 웹페이지에서 우클릭, 드래그, 텍스트 선택을 막고 Ctrl+C, Ctrl+V 같은 단축키도 안 먹히게 하는 보안 스크립트를 짜줘."
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "name": "파일 & 이미지 처리",
+      "items": [
+        {
+          "id": "img-preview",
+          "name": "이미지 업로드 미리보기",
+          "inputs": [
+            { "label": "파일 Input ID", "id": "fileId", "type": "text", "default": "#imgFile" },
+            { "label": "이미지 태그 ID", "id": "imgId", "type": "text", "default": "#preview" }
+          ],
+          "template": "$('${fileId}').on('change', function(e) {\n  var file = e.target.files[0];\n  if(file) {\n    var reader = new FileReader();\n    reader.onload = function(e) {\n      $('${imgId}').attr('src', e.target.result).show();\n    }\n    reader.readAsDataURL(file);\n  }\n});",
+          "html_example": "<input type=\"file\" id=\"${fileId_raw}\" accept=\"image/*\">\n<br>\n<img id=\"${imgId_raw}\" src=\"\" style=\"max-width:200px; display:none; margin-top:10px;\">",
+          "description": "1. `FileReader` API를 사용하여 사용자가 선택한 로컬 파일을 비동기로 읽어옵니다.\n2. 읽기가 완료되면(`onload`), 결과값(Base64 문자열)을 `img` 태그의 `src` 속성에 넣어 화면에 보여줍니다.",
+          "ai_prompt": "jQuery로 '${fileId}' 파일 입력창에 이미지를 올리면, 서버 전송 전에 '${imgId}' 태그에 썸네일 미리보기를 보여주는 코드를 작성해줘."
+        },
+        {
+          "id": "file-size-check",
+          "name": "파일 용량/확장자 체크",
+          "inputs": [
+            { "label": "파일 Input ID", "id": "fileId", "type": "text", "default": "#uploadFile" },
+            { "label": "제한 용량(MB)", "id": "maxSize", "type": "number", "default": "10" }
+          ],
+          "template": "$('${fileId}').on('change', function() {\n  if($(this).val() != \"\") {\n    var ext = $(this).val().split('.').pop().toLowerCase();\n    if($.inArray(ext, ['gif','png','jpg','jpeg','pdf']) == -1) {\n      alert('이미지 파일과 PDF만 업로드 가능합니다.');\n      $(this).val('');\n      return;\n    }\n    \n    var fileSize = this.files[0].size;\n    var maxSize = ${maxSize} * 1024 * 1024;\n    if(fileSize > maxSize) {\n      alert('파일 용량은 ${maxSize}MB를 초과할 수 없습니다.');\n      $(this).val('');\n    }\n  }\n});",
+          "html_example": "<input type=\"file\" id=\"${fileId_raw}\">",
+          "description": "1. 파일명의 마지막 `.` 뒤의 문자열을 추출하여 확장자를 검사합니다.\n2. `this.files[0].size`로 바이트 단위의 용량을 확인하고, 설정한 MB 단위 제한과 비교합니다.",
+          "ai_prompt": "jQuery로 파일 업로드 시 확장자가 이미지나 PDF인지 확인하고, 용량이 ${maxSize}MB를 넘으면 경고창을 띄우고 입력을 초기화하는 코드를 짜줘."
         }
       ]
     },
     {
       "id": "ui-interaction",
-      "name": "✨ UI 인터랙션",
+      "name": "UI 인터랙션",
       "items": [
         {
           "id": "tab-menu",
@@ -63,23 +186,50 @@
             { "label": "활성 Class명", "id": "active", "type": "text", "default": "active" }
           ],
           "template": "$('${btn}').on('click', function() {\n  var idx = $(this).index();\n  $('${btn}').removeClass('${active}');\n  $(this).addClass('${active}');\n  $('.tab-content').hide().eq(idx).show();\n});",
-          "html_example": "<div class=\"tab-wrapper\">\n  <button class=\"${btn_raw} active\">탭1</button>\n  <button class=\"${btn_raw}\">탭2</button>\n</div>\n\n<div class=\"tab-content\">내용1</div>\n<div class=\"tab-content\" style=\"display:none;\">내용2</div>"
+          "html_example": "<div class=\"tab-wrapper\">\n  <button class=\"${btn_raw} active\">탭1</button>\n  <button class=\"${btn_raw}\">탭2</button>\n</div>\n\n<div class=\"tab-content\">내용1</div>\n<div class=\"tab-content\" style=\"display:none;\">내용2</div>",
+          "description": "1. 클릭한 버튼의 순서(`index()`)를 알아냅니다.\n2. 모든 탭 내용을 숨기고(`hide`), 알아낸 순서와 동일한 순서의 콘텐츠만 보여줍니다(`eq(idx).show()`).",
+          "ai_prompt": "jQuery로 탭 메뉴를 만들고 싶어. '${btn}'을 클릭하면 해당 버튼에 '${active}' 클래스를 주고, 관련된 콘텐츠만 보여주는 코드를 작성해줘."
         },
         {
           "id": "modal-control",
-          "name": "모달 열기/닫기",
+          "name": "모달 열기/닫기 (Fade)",
           "inputs": [
             { "label": "모달 ID", "id": "modalId", "type": "text", "default": "#myModal" },
             { "label": "열기버튼 ID", "id": "btnId", "type": "text", "default": "#openBtn" }
           ],
-          "template": "$('${btnId}').on('click', function() {\n  $('${modalId}').fadeIn(200);\n});\n\n$('.btn-close').on('click', function() {\n  $('${modalId}').fadeOut(200);\n});",
-          "html_example": "\n<button id=\"${btnId_raw}\">모달 열기</button>\n\n\n<div id=\"${modalId_raw}\" style=\"display:none;\">\n  <div class=\"modal-body\">\n    <p>모달 내용</p>\n    <button class=\"btn-close\">닫기</button>\n  </div>\n</div>"
+          "template": "$('${btnId}').on('click', function() {\n  $('${modalId}').fadeIn(200);\n  $('body').css('overflow', 'hidden'); // 스크롤 막기\n});\n\n$('.btn-close, .modal-dim').on('click', function() {\n  $('${modalId}').fadeOut(200);\n  $('body').css('overflow', ''); // 스크롤 복구\n});",
+          "html_example": "\n<button id=\"${btnId_raw}\">모달 열기</button>\n\n<div id=\"${modalId_raw}\" style=\"display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:999;\">\n  <div class=\"modal-dim\" style=\"background:rgba(0,0,0,0.5); width:100%; height:100%; position:absolute;\"></div>\n  <div class=\"modal-content\" style=\"position:relative; background:#fff; margin:100px auto; width:300px; padding:20px;\">\n    <p>모달 내용</p>\n    <button class=\"btn-close\">닫기</button>\n  </div>\n</div>",
+          "description": "1. `fadeIn/fadeOut`으로 부드럽게 열고 닫습니다.\n2. 모달이 열려있을 때 배경 스크롤을 막기 위해 `body`의 `overflow`를 `hidden`으로 설정합니다.",
+          "ai_prompt": "jQuery로 '${btnId}' 클릭 시 '${modalId}' 모달창이 부드럽게 뜨고, 닫기 버튼이나 배경을 누르면 닫히는 기능을 만들어줘. 모달 떴을 때 배경 스크롤은 막아줘."
+        },
+        {
+          "id": "accordion",
+          "name": "아코디언 메뉴 (Toggle)",
+          "inputs": [
+            { "label": "제목 Class", "id": "title", "type": "text", "default": ".acc-title" },
+            { "label": "내용 Class", "id": "content", "type": "text", "default": ".acc-content" }
+          ],
+          "template": "$('${title}').on('click', function() {\n  // 클릭한 것만 열고 나머지는 닫기 (하나만 열림)\n  $(this).next('${content}').slideToggle(200);\n  $('${title}').not(this).next('${content}').slideUp(200);\n});",
+          "html_example": "<div class=\"${title_raw}\" style=\"cursor:pointer; background:#eee; padding:10px;\">질문 1</div>\n<div class=\"${content_raw}\" style=\"display:none; padding:10px;\">답변 1입니다.</div>\n\n<div class=\"${title_raw}\" style=\"cursor:pointer; background:#eee; padding:10px;\">질문 2</div>\n<div class=\"${content_raw}\" style=\"display:none; padding:10px;\">답변 2입니다.</div>",
+          "description": "1. `slideToggle`을 사용하여 클릭한 항목을 열거나 닫습니다.\n2. `not(this)`를 사용하여 클릭하지 않은 다른 모든 항목들은 강제로 닫아주어(`slideUp`), 한 번에 하나만 열리게 합니다.",
+          "ai_prompt": "jQuery로 아코디언 메뉴를 구현해줘. '${title}'을 클릭하면 바로 아래 '${content}'가 슬라이드로 열리고, 다른 열려있는 메뉴들은 자동으로 닫히게 해줘."
+        },
+        {
+          "id": "scroll-top",
+          "name": "맨 위로 가기 버튼",
+          "inputs": [
+            { "label": "버튼 ID", "id": "btn", "type": "text", "default": "#btnTop" }
+          ],
+          "template": "$(window).scroll(function() {\n  if ($(this).scrollTop() > 200) {\n    $('${btn}').fadeIn();\n  } else {\n    $('${btn}').fadeOut();\n  }\n});\n\n$('${btn}').click(function() {\n  $('html, body').animate({scrollTop : 0}, 400);\n  return false;\n});",
+          "html_example": "<button id=\"${btn_raw}\" style=\"display:none; position:fixed; bottom:20px; right:20px;\">TOP</button>",
+          "description": "1. 스크롤 위치(`scrollTop`)가 200px 이상일 때만 버튼을 보여줍니다.\n2. 버튼 클릭 시 `animate` 함수를 이용해 스크롤 위치를 0(맨 위)으로 부드럽게 이동시킵니다.",
+          "ai_prompt": "jQuery로 스크롤을 좀 내리면 나타나는 '맨 위로 가기' 버튼을 만들어줘. 클릭하면 부드럽게 최상단으로 스크롤되어야 해."
         }
       ]
     },
     {
       "id": "utils",
-      "name": "🛠️ 실무 유틸리티",
+      "name": "실무 유틸리티",
       "items": [
         {
           "id": "phone-format",
@@ -88,38 +238,102 @@
             { "label": "선택자", "id": "selector", "type": "text", "default": ".phone-check" }
           ],
           "template": "$(document).on('keyup', '${selector}', function() {\n  var val = $(this).val().replace(/[^0-9]/g, '');\n  if (val.length < 4) $(this).val(val);\n  else if (val.length < 7) $(this).val(val.substr(0, 3) + '-' + val.substr(3));\n  else if (val.length < 11) $(this).val(val.substr(0, 3) + '-' + val.substr(3, 3) + '-' + val.substr(6));\n  else $(this).val(val.substr(0, 3) + '-' + val.substr(3, 4) + '-' + val.substr(7));\n});",
-          "html_example": "<input type=\"text\" class=\"${selector_raw}\" maxlength=\"13\" placeholder=\"010-0000-0000\">"
+          "html_example": "<input type=\"text\" class=\"${selector_raw}\" maxlength=\"13\" placeholder=\"010-0000-0000\">",
+          "description": "1. 입력된 값에서 숫자만 남기고 모두 제거합니다.\n2. 글자 수(4자리, 7자리, 11자리)에 따라 하이픈(`-`)을 적절한 위치에 삽입하여 다시 값으로 넣어줍니다.",
+          "ai_prompt": "jQuery로 '${selector}' 입력창에 전화번호를 입력할 때, 사용자가 숫자만 쳐도 자동으로 010-1234-5678 형식으로 하이픈이 붙게 해줘."
         },
         {
           "id": "add-comma",
-          "name": "천 단위 콤마",
+          "name": "천 단위 콤마 (금액)",
           "inputs": [
             { "label": "함수명", "id": "name", "type": "text", "default": "fn_comma" }
           ],
-          "template": "function ${name}(num) {\n  return num.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');\n}\n\n// 사용 예: console.log(${name}(1250000));",
-          "html_example": ""
+          "template": "function ${name}(num) {\n  if(!num) return '0';\n  return num.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');\n}\n\n// 입력 시 자동 콤마\n$(document).on('keyup', '.input-money', function() {\n  var val = $(this).val().replace(/[^0-9]/g, '');\n  $(this).val(${name}(val));\n});",
+          "html_example": "<input type=\"text\" class=\"input-money\" placeholder=\"금액 입력\">",
+          "description": "1. 정규식 `\\B(?=(\\d{3})+(?!\\d))`는 숫자 3자리마다 경계를 찾아내는 패턴입니다.\n2. 이를 이용해 숫자 사이에 콤마(`,`)를 삽입합니다.",
+          "ai_prompt": "자바스크립트로 숫자를 입력받으면 3자리마다 콤마를 찍어주는 '${name}' 함수를 만들어줘. 그리고 입력창에서 타이핑할 때마다 실시간으로 적용되게 해줘."
+        },
+        {
+          "id": "url-param",
+          "name": "URL 파라미터 가져오기",
+          "inputs": [
+            { "label": "함수명", "id": "func", "type": "text", "default": "getParam" }
+          ],
+          "template": "function ${func}(name) {\n  var results = new RegExp('[\\\\?&]' + name + '=([^&#]*)').exec(window.location.href);\n  if (!results) return null;\n  return decodeURIComponent(results[1]) || 0;\n}\n\n// 사용 예: var id = ${func}('id');",
+          "html_example": "",
+          "description": "1. 현재 페이지 URL(`window.location.href`)에서 정규식을 이용해 특정 파라미터 이름(`name`) 뒤에 오는 값을 추출합니다.\n2. URL 인코딩된 값을 `decodeURIComponent`로 사람이 읽을 수 있게 변환합니다.",
+          "ai_prompt": "자바스크립트로 현재 URL에서 '?id=123' 같은 쿼리 스트링 파라미터 값을 가져오는 '${func}' 함수를 만들어줘."
+        },
+        {
+          "id": "copy-clipboard",
+          "name": "클립보드 복사",
+          "inputs": [
+            { "label": "버튼 ID", "id": "btn", "type": "text", "default": "#btnCopy" },
+            { "label": "복사할 텍스트 ID", "id": "target", "type": "text", "default": "#myCode" }
+          ],
+          "template": "$('${btn}').on('click', function() {\n  var content = $('${target}').text();\n  \n  // 최신 방식 (HTTPS 필요)\n  if (navigator.clipboard) {\n    navigator.clipboard.writeText(content).then(() => {\n      alert('복사되었습니다.');\n    });\n  } else {\n    // 구형 브라우저 호환\n    var $temp = $(\"<textarea>\");\n    $(\"body\").append($temp);\n    $temp.val(content).select();\n    document.execCommand(\"copy\");\n    $temp.remove();\n    alert('복사되었습니다.');\n  }\n});",
+          "html_example": "<div id=\"${target_raw}\">A1234-5678</div>\n<button id=\"${btn_raw}\">코드 복사</button>",
+          "description": "1. 최신 브라우저에서는 `navigator.clipboard` API를 사용합니다.\n2. 구형 브라우저나 HTTP 환경에서는 임시 `textarea`를 만들고 내용을 선택(`select`)한 뒤 `execCommand('copy')`를 실행하는 트릭을 사용합니다.",
+          "ai_prompt": "jQuery로 '${btn}' 버튼을 누르면 '${target}'의 텍스트 내용을 클립보드에 복사하는 기능을 만들어줘. 구형 브라우저 호환성도 고려해줘."
+        },
+        {
+          "id": "cookie-set",
+          "name": "쿠키 설정/가져오기",
+          "inputs": [
+            { "label": "함수 접두어", "id": "prefix", "type": "text", "default": "Cookie" }
+          ],
+          "template": "function set${prefix}(name, value, days) {\n  var expires = \"\";\n  if (days) {\n    var date = new Date();\n    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));\n    expires = \"; expires=\" + date.toUTCString();\n  }\n  document.cookie = name + \"=\" + (value || \"\") + expires + \"; path=/\";\n}\n\nfunction get${prefix}(name) {\n  var nameEQ = name + \"=\";\n  var ca = document.cookie.split(';');\n  for (var i = 0; i < ca.length; i++) {\n    var c = ca[i];\n    while (c.charAt(0) == ' ') c = c.substring(1, c.length);\n    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);\n  }\n  return null;\n}",
+          "html_example": "",
+          "description": "1. `setCookie`: 만료일(`expires`)을 계산하여 `document.cookie` 문자열에 저장합니다.\n2. `getCookie`: 쿠키 문자열을 `;`로 쪼갠 뒤 반복문을 돌며 원하는 이름의 쿠키 값을 찾습니다.",
+          "ai_prompt": "자바스크립트로 쿠키를 설정(set)하고 가져오는(get) 유틸리티 함수를 만들어줘. 만료일(일 단위)도 설정할 수 있어야 해."
         }
       ]
     },
     {
       "id": "grid",
-      "name": "📊 그리드/테이블",
+      "name": "그리드 & 테이블",
       "items": [
         {
           "id": "row-add",
-          "name": "테이블 행 추가",
+          "name": "테이블 행 추가/삭제",
           "inputs": [
             { "label": "테이블 ID", "id": "tableId", "type": "text", "default": "#dataGrid" },
-            { "label": "버튼 ID", "id": "btnAdd", "type": "text", "default": "#rowAddBtn" }
+            { "label": "추가버튼 ID", "id": "btnAdd", "type": "text", "default": "#rowAddBtn" }
           ],
-          "template": "$('${btnAdd}').on('click', function() {\n  var tr = '<tr><td><input type=\"text\"></td></tr>';\n  $('${tableId} tbody').append(tr);\n});",
-          "html_example": "<button id=\"${btnAdd_raw}\">행 추가</button>\n\n<table id=\"${tableId_raw}\">\n  <tbody>\n    <tr><td><input type=\"text\"></td></tr>\n  </tbody>\n</table>"
+          "template": "$('${btnAdd}').on('click', function() {\n  var tr = '<tr><td><input type=\"text\"></td><td><button class=\"btn-del\">삭제</button></td></tr>';\n  $('${tableId} tbody').append(tr);\n});\n\n$(document).on('click', '.btn-del', function() {\n  $(this).closest('tr').remove();\n});",
+          "html_example": "<button id=\"${btnAdd_raw}\">행 추가</button>\n<table id=\"${tableId_raw}\" border=\"1\">\n  <tbody></tbody>\n</table>",
+          "description": "1. `append`를 사용하여 테이블의 `tbody` 끝에 새로운 `tr` HTML 문자열을 추가합니다.\n2. 삭제 버튼은 동적으로 추가되므로 `$(document).on`을 사용해야 하며, `closest('tr')`로 자신이 속한 행을 찾아 삭제합니다.",
+          "ai_prompt": "jQuery로 '${btnAdd}' 버튼을 누르면 '${tableId}' 테이블에 입력 가능한 행이 추가되고, 각 행의 삭제 버튼을 누르면 해당 행이 지워지는 기능을 구현해줘."
+        },
+        {
+          "id": "table-search",
+          "name": "테이블 내 검색 (필터)",
+          "inputs": [
+            { "label": "검색창 ID", "id": "search", "type": "text", "default": "#gridSearch" },
+            { "label": "테이블 ID", "id": "table", "type": "text", "default": "#myTable" }
+          ],
+          "template": "$('${search}').on('keyup', function() {\n  var value = $(this).val().toLowerCase();\n  $('${table} tbody tr').filter(function() {\n    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)\n  });\n});",
+          "html_example": "<input type=\"text\" id=\"${search_raw}\" placeholder=\"검색...\">\n<table id=\"${table_raw}\">\n  <tbody>\n    <tr><td>홍길동</td><td>서울</td></tr>\n    <tr><td>김철수</td><td>부산</td></tr>\n  </tbody>\n</table>",
+          "description": "1. `filter` 함수를 사용하여 테이블의 모든 행(`tr`)을 순회합니다.\n2. 각 행의 텍스트에 검색어가 포함되어 있는지 확인(`indexOf`)하고, 결과에 따라 `toggle`(보이기/숨기기) 처리합니다.",
+          "ai_prompt": "jQuery로 '${search}' 입력창에 글자를 칠 때마다 '${table}' 테이블의 내용 중에서 검색어가 포함된 행만 보여주고 나머지는 숨기는 필터 기능을 만들어줘."
+        },
+        {
+          "id": "table-excel",
+          "name": "테이블을 CSV로 내보내기",
+          "inputs": [
+            { "label": "버튼 ID", "id": "btn", "type": "text", "default": "#btnExcel" },
+            { "label": "테이블 ID", "id": "table", "type": "text", "default": "#myTable" }
+          ],
+          "template": "$('${btn}').on('click', function() {\n  var csv = [];\n  var rows = document.querySelectorAll(\"${table} tr\");\n  \n  for (var i = 0; i < rows.length; i++) {\n    var row = [], cols = rows[i].querySelectorAll(\"td, th\");\n    for (var j = 0; j < cols.length; j++) \n      row.push(cols[j].innerText);\n    csv.push(row.join(\",\"));        \n  }\n\n  var downloadLink = document.createElement(\"a\");\n  var blob = new Blob([\"\\ufeff\" + csv.join(\"\\n\")], { type: \"text/csv;charset=utf-8\" });\n  var url = URL.createObjectURL(blob);\n  downloadLink.href = url;\n  downloadLink.download = \"data.csv\";\n  \n  document.body.appendChild(downloadLink);\n  downloadLink.click();\n  document.body.removeChild(downloadLink);\n});",
+          "html_example": "<button id=\"${btn_raw}\">엑셀 다운로드</button>\n<table id=\"${table_raw}\">...</table>",
+          "description": "1. 테이블의 모든 행과 열을 순회하며 텍스트 데이터를 콤마(`,`)로 구분된 문자열(CSV 형식)로 만듭니다.\n2. `Blob` 객체를 생성하여 다운로드 가능한 링크를 만들고, 강제로 클릭 이벤트를 발생시켜 파일을 다운로드합니다.",
+          "ai_prompt": "자바스크립트로 '${table}' 테이블의 내용을 긁어서 CSV 파일로 다운로드하는 기능을 만들어줘. 한글 깨짐 방지(BOM) 처리도 해줘."
         }
       ]
     },
     {
       "id": "traversing",
-      "name": "🔍 요소 탐색 (Traversing)",
+      "name": "요소 탐색 (Traversing)",
       "items": [
         {
           "id": "closest-find",
@@ -130,33 +344,38 @@
             { "label": "찾을 자식", "id": "child", "type": "text", "default": ".input-name" }
           ],
           "template": "$(document).on('click', '${start}', function() {\n  var $val = $(this).closest('${parent}').find('${child}').val();\n  console.log('찾은 값:', $val);\n});",
-          "html_example": "<table>\n  <tr>\n    <td><input type=\"text\" class=\"${child_raw}\" value=\"홍길동\"></td>\n    <td><button class=\"${start_raw}\">수정</button></td>\n  </tr>\n</table>"
+          "html_example": "<table>\n  <tr>\n    <td><input type=\"text\" class=\"${child_raw}\" value=\"홍길동\"></td>\n    <td><button class=\"${start_raw}\">수정</button></td>\n  </tr>\n</table>",
+          "description": "1. `closest`는 현재 요소에서 시작해 부모 방향으로 거슬러 올라가며 가장 가까운 요소를 찾습니다.\n2. `find`는 찾은 부모 요소의 자식들 중에서 특정 요소를 찾습니다. 이 패턴은 리스트나 테이블 내에서 내 위치를 기준으로 데이터를 찾을 때 필수적입니다.",
+          "ai_prompt": "jQuery로 '${start}' 버튼을 클릭했을 때, 이 버튼이 속한 '${parent}' 태그 안에서 '${child}'라는 클래스를 가진 요소의 값을 가져오는 코드를 짜줘."
         },
         {
-          "id": "siblings-toggle",
-          "name": "형제 요소 제어 (아코디언)",
+          "id": "siblings-control",
+          "name": "형제 요소 제어",
           "inputs": [
-            { "label": "클릭 요소", "id": "target", "type": "text", "default": ".title" },
-            { "label": "보여줄 내용", "id": "content", "type": "text", "default": ".desc" }
+            { "label": "기준 ID", "id": "me", "type": "text", "default": "#me" }
           ],
-          "template": "$('${target}').on('click', function() {\n  $(this).next('${content}').slideToggle();\n  $(this).siblings('${target}').next('${content}').slideUp();\n});",
-          "html_example": "<div class=\"${target_raw}\">제목 1</div>\n<div class=\"${content_raw}\" style=\"display:none;\">내용 1</div>\n<div class=\"${target_raw}\">제목 2</div>\n<div class=\"${content_raw}\" style=\"display:none;\">내용 2</div>"
+          "template": "// 나를 제외한 형제들 숨기기\n$('${me}').siblings().hide();\n\n// 바로 다음 요소 선택\n$('${me}').next().css('color', 'red');\n\n// 바로 이전 요소 선택\n$('${me}').prev().css('color', 'blue');",
+          "html_example": "<ul>\n  <li>형 1</li>\n  <li id=\"${me_raw}\">나</li>\n  <li>동생 1</li>\n</ul>",
+          "description": "1. `siblings()`는 자신을 제외한 모든 형제 요소를 선택합니다.\n2. `next()`와 `prev()`는 각각 바로 다음, 바로 이전 형제 요소 하나만을 선택합니다.",
+          "ai_prompt": "jQuery로 '${me}' 요소를 기준으로, 나머지 형제 요소들은 다 숨기고 바로 다음 요소만 빨간색으로 칠하는 코드를 작성해줘."
         }
       ]
     },
     {
       "id": "attributes",
-      "name": "🏷️ 속성 & 클래스 제어",
+      "name": "속성 & 클래스 제어",
       "items": [
         {
           "id": "attr-toggle",
-          "name": "입력창 활성/비활성 (Disabled)",
+          "name": "활성/비활성 (Disabled)",
           "inputs": [
             { "label": "체크박스 ID", "id": "chkId", "type": "text", "default": "#chkEdit" },
             { "label": "입력창 ID", "id": "inputId", "type": "text", "default": "#userName" }
           ],
           "template": "$('${chkId}').on('change', function() {\n  var isChecked = $(this).is(':checked');\n  $('${inputId}').prop('disabled', !isChecked);\n});",
-          "html_example": "수정가능 <input type=\"checkbox\" id=\"${chkId_raw}\">\n<input type=\"text\" id=\"${inputId_raw}\" disabled>"
+          "html_example": "수정가능 <input type=\"checkbox\" id=\"${chkId_raw}\">\n<input type=\"text\" id=\"${inputId_raw}\" disabled>",
+          "description": "1. `prop('disabled', true/false)`를 사용하여 요소의 비활성화 상태를 제어합니다.\n2. 체크박스의 체크 여부(`is(':checked')`)에 따라 입력창의 상태를 반대로 설정합니다.",
+          "ai_prompt": "jQuery로 '${chkId}' 체크박스를 체크하면 '${inputId}' 입력창이 활성화되고, 체크를 풀면 비활성화(disabled)되게 해줘."
         },
         {
           "id": "data-attr",
@@ -165,47 +384,66 @@
             { "label": "요소 선택자", "id": "selector", "type": "text", "default": ".user-item" },
             { "label": "데이터 키값", "id": "key", "type": "text", "default": "user-no" }
           ],
-          "template": "$('${selector}').on('click', function() {\n  var userNo = $(this).data('${key}');\n  console.log('회원번호:', userNo);\n  \n  // 값 변경 시\n  $(this).data('${key}', 'new-value');\n});",
-          "html_example": "<div class=\"${selector_raw}\" data-${key_raw}=\"12345\">회원정보 보기</div>"
+          "template": "$('${selector}').on('click', function() {\n  // 읽기 (data-user-no)\n  var userNo = $(this).data('${key}');\n  console.log('값:', userNo);\n  \n  // 쓰기\n  $(this).data('${key}', '9999');\n});",
+          "html_example": "<div class=\"${selector_raw}\" data-${key_raw}=\"12345\">클릭하세요</div>",
+          "description": "1. HTML5 `data-*` 속성은 jQuery의 `data()` 메서드로 쉽게 읽고 쓸 수 있습니다.\n2. `data-user-no` 처럼 하이픈이 있는 속성은 `data('userNo')` 처럼 카멜 케이스로 접근하거나, `data('user-no')`로 접근합니다.",
+          "ai_prompt": "jQuery로 '${selector}' 요소를 클릭했을 때 'data-${key}' 속성 값을 읽어와서 콘솔에 찍고, 값을 변경하는 코드를 보여줘."
         }
       ]
     },
     {
       "id": "global-ajax",
-      "name": "🌍 글로벌 AJAX & 로딩",
+      "name": "AJAX & 네트워크",
       "items": [
         {
+          "id": "ajax-basic",
+          "name": "기본 AJAX 요청 (POST)",
+          "inputs": [
+            { "label": "URL", "id": "url", "type": "text", "default": "/api/save" }
+          ],
+          "template": "$.ajax({\n  url: '${url}',\n  type: 'POST',\n  data: { id: 'test', val: 123 },\n  dataType: 'json',\n  success: function(res) {\n    if(res.result === 'ok') {\n      alert('성공했습니다.');\n    }\n  },\n  error: function(xhr, status, error) {\n    console.error(error);\n    alert('오류가 발생했습니다.');\n  }\n});",
+          "html_example": "",
+          "description": "1. `$.ajax`는 비동기 통신을 위한 가장 기본적인 jQuery 메서드입니다.\n2. `success` 콜백은 요청 성공 시, `error` 콜백은 서버 오류나 네트워크 문제 발생 시 실행됩니다.",
+          "ai_prompt": "jQuery ajax로 '${url}' 주소에 POST 방식으로 데이터를 보내고, 성공하면 알림창을 띄우는 기본 템플릿 코드를 짜줘."
+        },
+        {
           "id": "ajax-loading",
-          "name": "전역 로딩바 표시 (Start/Stop)",
+          "name": "전역 로딩바 (Global)",
           "inputs": [
             { "label": "로딩바 ID", "id": "loadingId", "type": "text", "default": "#loadingBar" }
           ],
           "template": "$(document).ajaxStart(function() {\n  $('${loadingId}').show();\n}).ajaxStop(function() {\n  $('${loadingId}').hide();\n});",
-          "html_example": "\n<div id=\"${loadingId_raw}\" style=\"display:none; position:fixed; top:50%; left:50%;\">\n  <img src=\"loading.gif\" alt=\"loading\">\n</div>"
+          "html_example": "\n<div id=\"${loadingId_raw}\" style=\"display:none; position:fixed; top:50%; left:50%;\">\n  <img src=\"loading.gif\" alt=\"loading\">\n</div>",
+          "description": "1. `ajaxStart`와 `ajaxStop`은 페이지 내의 모든 AJAX 요청에 대해 공통적으로 작동하는 글로벌 이벤트입니다.\n2. 이를 이용하면 개별 요청마다 로딩바 코드를 넣을 필요 없이 한 번에 관리할 수 있습니다.",
+          "ai_prompt": "jQuery로 페이지에서 AJAX 요청이 시작되면 '${loadingId}' 로딩바를 보여주고, 모든 요청이 끝나면 숨기는 전역 설정을 해줘."
         },
         {
-          "id": "ajax-setup",
-          "name": "AJAX 기본설정 (CSRF 등)",
+          "id": "ajax-form",
+          "name": "폼 데이터 전송 (FormData)",
           "inputs": [
-            { "label": "헤더 이름", "id": "header", "type": "text", "default": "X-CSRF-TOKEN" }
+            { "label": "폼 ID", "id": "formId", "type": "text", "default": "#myForm" }
           ],
-          "template": "$.ajaxSetup({\n  headers: {\n    '${header}': $('meta[name=\"_csrf\"]').attr('content')\n  },\n  error: function(xhr) {\n    if(xhr.status === 401) alert('세션이 만료되었습니다.');\n  }\n});",
-          "html_example": "\n<meta name=\"_csrf\" content=\"random-token-value\">"
+          "template": "$('#btnSave').on('click', function() {\n  var formData = new FormData($('${formId}')[0]);\n  \n  $.ajax({\n    url: '/upload',\n    type: 'POST',\n    data: formData,\n    contentType: false,\n    processData: false,\n    success: function(data) {\n      alert('업로드 완료');\n    }\n  });\n});",
+          "html_example": "<form id=\"${formId_raw}\">\n  <input type=\"text\" name=\"username\">\n  <input type=\"file\" name=\"file\">\n</form>\n<button id=\"btnSave\">저장</button>",
+          "description": "1. 파일 업로드를 위해서는 `FormData` 객체를 사용해야 합니다.\n2. jQuery ajax 옵션에서 `contentType: false`와 `processData: false`를 반드시 설정해야 파일이 깨지지 않고 전송됩니다.",
+          "ai_prompt": "jQuery ajax로 '${formId}' 폼에 있는 데이터와 파일을 서버로 전송하는 코드를 짜줘. FormData를 사용해야 해."
         }
       ]
     },
     {
       "id": "advanced-ui",
-      "name": "🎨 고급 UI 제어",
+      "name": "고급 UI 제어",
       "items": [
         {
           "id": "scroll-spy",
-          "name": "스크롤 위치 감지 (ScrollSpy)",
+          "name": "스크롤 시 헤더 고정 (Sticky)",
           "inputs": [
             { "label": "헤더 ID", "id": "headerId", "type": "text", "default": "#mainHeader" }
           ],
           "template": "$(window).on('scroll', function() {\n  var scrollTop = $(window).scrollTop();\n  if (scrollTop > 100) {\n    $('${headerId}').addClass('sticky');\n  } else {\n    $('${headerId}').removeClass('sticky');\n  }\n});",
-          "html_example": "<header id=\"${headerId_raw}\">상단 메뉴</header>\n<div style=\"height:2000px;\">스크롤용 긴 콘텐츠</div>"
+          "html_example": "<style>.sticky { position:fixed; top:0; width:100%; box-shadow:0 2px 5px rgba(0,0,0,0.1); }</style>\n<header id=\"${headerId_raw}\">상단 메뉴</header>\n<div style=\"height:2000px;\">스크롤용 긴 콘텐츠</div>",
+          "description": "1. 스크롤 이벤트가 발생할 때마다 현재 스크롤 위치(`scrollTop`)를 확인합니다.\n2. 일정 위치 이상 내려가면 헤더에 `sticky` 클래스를 붙여 CSS로 고정 스타일을 적용합니다.",
+          "ai_prompt": "jQuery로 스크롤을 100px 이상 내리면 '${headerId}' 헤더에 'sticky' 클래스를 추가하고, 다시 올리면 제거하는 코드를 만들어줘."
         },
         {
           "id": "outside-click",
@@ -214,13 +452,26 @@
             { "label": "팝업 ID", "id": "popupId", "type": "text", "default": ".popup-layer" }
           ],
           "template": "$(document).on('mouseup', function(e) {\n  var container = $('${popupId}');\n  if (!container.is(e.target) && container.has(e.target).length === 0) {\n    container.hide();\n  }\n});",
-          "html_example": "<div class=\"${popupId_raw}\">팝업창 내용 (이곳 밖을 클릭하면 닫힙니다)</div>"
+          "html_example": "<div class=\"${popupId_raw}\">팝업창 내용 (이곳 밖을 클릭하면 닫힙니다)</div>",
+          "description": "1. 문서 전체의 클릭(`mouseup`) 이벤트를 감지합니다.\n2. 클릭된 요소(`e.target`)가 팝업 컨테이너 자신이거나 그 자식 요소인지 확인하고, 둘 다 아니라면 팝업을 닫습니다.",
+          "ai_prompt": "jQuery로 '${popupId}' 팝업창이 떠 있을 때, 팝업창 외부 영역을 클릭하면 팝업이 닫히는 기능을 구현해줘."
+        },
+        {
+          "id": "toast-msg",
+          "name": "토스트 메시지 (알림)",
+          "inputs": [
+            { "label": "함수명", "id": "func", "type": "text", "default": "showToast" }
+          ],
+          "template": "function ${func}(msg) {\n  var $toast = $('<div class=\"toast\">' + msg + '</div>');\n  $('body').append($toast);\n  $toast.fadeIn(400).delay(2000).fadeOut(400, function() {\n    $(this).remove();\n  });\n}",
+          "html_example": "<style>\n.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:20px; display:none; }\n</style>\n<button onclick=\"${func}('저장되었습니다!')\">토스트 띄우기</button>",
+          "description": "1. 동적으로 `div` 태그를 생성하여 body에 추가합니다.\n2. `fadeIn` -> `delay`(대기) -> `fadeOut` 순서로 애니메이션을 실행하고, 마지막 콜백 함수에서 요소를 완전히 삭제(`remove`)합니다.",
+          "ai_prompt": "jQuery로 안드로이드 토스트 메시지처럼 잠시 떴다가 사라지는 알림창 함수 '${func}'를 만들어줘. 메시지를 인자로 받아야 해."
         }
       ]
     },
     {
       "id": "external-libs",
-      "name": "📦 외부 라이브러리 확장",
+      "name": "외부 라이브러리 확장",
       "items": [
         {
           "id": "sweetalert-confirm",
@@ -230,7 +481,9 @@
             { "label": "성공 함수명", "id": "callback", "type": "text", "default": "fn_delete" }
           ],
           "template": "Swal.fire({\n  title: '확인',\n  text: '${msg}',\n  icon: 'warning',\n  showCancelButton: true,\n  confirmButtonColor: '#3085d6',\n  cancelButtonColor: '#d33',\n  confirmButtonText: '승인',\n  cancelButtonText: '취소'\n}).then((result) => {\n  if (result.isConfirmed) {\n    ${callback}();\n  }\n});",
-          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/sweetalert2@11\"></script>\n<button type=\"button\" onclick=\"fn_confirm()\">삭제 버튼</button>"
+          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/sweetalert2@11\"></script>\n<button type=\"button\" onclick=\"fn_confirm()\">삭제 버튼</button>",
+          "description": "1. 기본 `confirm` 창은 디자인 수정이 불가능하지만, SweetAlert2 라이브러리를 쓰면 예쁜 모달창을 띄울 수 있습니다.\n2. Promise 기반(`then`)으로 동작하여 확인 버튼을 눌렀을 때의 로직을 처리합니다.",
+          "ai_prompt": "SweetAlert2 라이브러리를 사용해서 '${msg}'라는 메시지와 함께 확인/취소 버튼이 있는 경고창을 띄우고, 확인을 누르면 '${callback}' 함수를 실행하는 코드를 짜줘."
         },
         {
           "id": "dayjs-format",
@@ -239,7 +492,20 @@
             { "label": "포맷 형식", "id": "format", "type": "text", "default": "YYYY-MM-DD" }
           ],
           "template": "// 현재 날짜를 지정한 포맷으로 출력\nvar today = dayjs().format('${format}');\nconsole.log('오늘 날짜:', today);\n\n// 특정 날짜 가감 (7일 뒤)\nvar nextWeek = dayjs().add(7, 'day').format('${format}');",
-          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js\"></script>"
+          "html_example": "\n<script src=\"https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js\"></script>",
+          "description": "1. Moment.js보다 훨씬 가벼운 Day.js 라이브러리입니다.\n2. `format()` 메서드로 날짜 형식을 쉽게 변경하고, `add/subtract`로 날짜 연산을 직관적으로 할 수 있습니다.",
+          "ai_prompt": "Day.js 라이브러리를 사용해서 오늘 날짜를 '${format}' 형식으로 출력하고, 일주일 뒤의 날짜도 계산하는 코드를 보여줘."
+        },
+        {
+          "id": "lodash-uniq",
+          "name": "Lodash 배열 중복제거",
+          "inputs": [
+            { "label": "변수명", "id": "varName", "type": "text", "default": "myArray" }
+          ],
+          "template": "var ${varName} = [1, 2, 2, 3, 4, 4, 5];\nvar unique = _.uniq(${varName});\nconsole.log(unique); // [1, 2, 3, 4, 5]",
+          "html_example": "<script src=\"https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js\"></script>",
+          "description": "1. Lodash는 자바스크립트 유틸리티 라이브러리의 표준입니다.\n2. `_.uniq` 함수는 배열 내의 중복된 값을 제거하고 고유한 값만 남긴 새로운 배열을 반환합니다.",
+          "ai_prompt": "Lodash 라이브러리의 uniq 함수를 사용해서 '${varName}' 배열의 중복 데이터를 제거하는 예제 코드를 보여줘."
         }
       ]
     }
