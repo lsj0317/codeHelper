@@ -23,6 +23,11 @@ export const translations = {
     // Code Display
     "code.copied": "코드가 복사되었습니다!",
     "code.copy": "복사",
+    "code.editMode": "편집",
+    "code.viewMode": "보기",
+    "code.modified": "수정됨",
+    "code.reset": "초기화",
+    "code.resetTooltip": "원래 코드로 초기화",
 
     // Description Panel
     "description.title": "로직 설명 (How it works)",
@@ -114,6 +119,11 @@ export const translations = {
     // Code Display
     "code.copied": "Code copied!",
     "code.copy": "Copy",
+    "code.editMode": "Edit",
+    "code.viewMode": "View",
+    "code.modified": "modified",
+    "code.reset": "Reset",
+    "code.resetTooltip": "Reset to original code",
 
     // Description Panel
     "description.title": "How it works",
