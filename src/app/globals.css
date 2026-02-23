@@ -30,14 +30,6 @@ code {
   font-family: var(--font-mono);
 }
 
-/* Prism 배경색 재정의 */
-pre[class*="language-"] {
-  margin: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  text-shadow: none !important;
-}
-
 /* 커스텀 스크롤바 */
 .custom-scroll::-webkit-scrollbar {
   width: 6px;

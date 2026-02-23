@@ -142,6 +142,20 @@ export function QueryPickApp() {
     return renderTemplate(selectedItem.html_example, inputValues);
   }, [selectedItem, inputValues]);
 
+  // 편집된 코드 상태 (Monaco Editor에서 수정된 코드)
+  const [editedJs, setEditedJs] = useState<string | null>(null);
+  const [editedHtml, setEditedHtml] = useState<string | null>(null);
+
+  // 입력값이나 선택 아이템 변경 시 편집 상태 초기화
+  useEffect(() => {
+    setEditedJs(null);
+    setEditedHtml(null);
+  }, [selectedItem, inputValues]);
+
+  // Preview에 사용할 최종 코드
+  const finalJs = editedJs ?? renderedJs;
+  const finalHtml = editedHtml ?? renderedHtml;
+
   const renderedPrompt = useMemo(() => {
     if (!selectedItem) return "";
     return renderTemplate(selectedItem.ai_prompt, inputValues);
@@ -213,6 +227,7 @@ export function QueryPickApp() {
                 label="JAVASCRIPT (JQUERY)"
                 colorClass="text-blue-600 dark:text-blue-400"
                 dotColor="bg-blue-500"
+                onCodeChange={setEditedJs}
               />
               <CodeDisplay
                 code={renderedHtml}
@@ -220,6 +235,7 @@ export function QueryPickApp() {
                 label="HTML EXAMPLE"
                 colorClass="text-emerald-600 dark:text-emerald-400"
                 dotColor="bg-emerald-500"
+                onCodeChange={setEditedHtml}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -264,8 +280,8 @@ export function QueryPickApp() {
       <PreviewModal
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        jsCode={renderedJs}
-        htmlCode={renderedHtml}
+        jsCode={finalJs}
+        htmlCode={finalHtml}
       />
       <ShareModal
         open={shareOpen}
