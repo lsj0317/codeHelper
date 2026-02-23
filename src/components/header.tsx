@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { Moon, Sun, BookOpen } from "lucide-react";
+import { Moon, Sun, BookOpen, Globe } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/language-provider";
 
 interface HeaderProps {
   onOpenUsageGuide: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export function Header({ onOpenUsageGuide }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { locale, setLocale, t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,6 +38,15 @@ export function Header({ onOpenUsageGuide }: HeaderProps) {
       <nav className="flex items-center gap-2 md:gap-4">
         <Button
           variant="ghost"
+          size="sm"
+          onClick={() => setLocale(locale === "ko" ? "en" : "ko")}
+          className="rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold gap-1"
+        >
+          <Globe className="h-4 w-4" />
+          <span>{locale === "ko" ? "EN" : "KO"}</span>
+        </Button>
+        <Button
+          variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="rounded-lg bg-slate-100 dark:bg-slate-800"
@@ -57,7 +68,7 @@ export function Header({ onOpenUsageGuide }: HeaderProps) {
           className="text-slate-500 dark:text-slate-400 hover:text-blue-600"
         >
           <BookOpen className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">사용법</span>
+          <span className="hidden sm:inline">{t("header.usage")}</span>
         </Button>
       </nav>
     </header>

@@ -8,6 +8,7 @@ import "prismjs/components/prism-markup";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/language-provider";
 
 interface CodeDisplayProps {
   code: string;
@@ -26,6 +27,7 @@ export function CodeDisplay({
 }: CodeDisplayProps) {
   const codeRef = useRef<HTMLElement>(null);
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (codeRef.current) {
@@ -37,7 +39,7 @@ export function CodeDisplay({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
-      showToast("코드가 복사되었습니다!");
+      showToast(t("code.copied"));
     } catch {
       const textarea = document.createElement("textarea");
       textarea.value = code;
@@ -45,7 +47,7 @@ export function CodeDisplay({
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      showToast("코드가 복사되었습니다!");
+      showToast(t("code.copied"));
     }
   };
 
@@ -63,7 +65,7 @@ export function CodeDisplay({
           className="text-[10px] h-7"
         >
           <Copy className="h-3 w-3 mr-1" />
-          복사
+          {t("code.copy")}
         </Button>
       </CardHeader>
       <pre className={`p-6 overflow-x-auto language-${language} bg-transparent`}>

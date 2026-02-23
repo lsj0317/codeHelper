@@ -4,6 +4,7 @@ import { Copy } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/language-provider";
 
 interface AiPromptPanelProps {
   prompt: string;
@@ -11,11 +12,12 @@ interface AiPromptPanelProps {
 
 export function AiPromptPanel({ prompt }: AiPromptPanelProps) {
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(prompt);
-      showToast("AI 프롬프트가 복사되었습니다!");
+      showToast(t("aiPrompt.copied"));
     } catch {
       const textarea = document.createElement("textarea");
       textarea.value = prompt;
@@ -23,7 +25,7 @@ export function AiPromptPanel({ prompt }: AiPromptPanelProps) {
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      showToast("AI 프롬프트가 복사되었습니다!");
+      showToast(t("aiPrompt.copied"));
     }
   };
 
@@ -32,7 +34,7 @@ export function AiPromptPanel({ prompt }: AiPromptPanelProps) {
       <CardContent>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-            AI에게 질문하기 (Prompt)
+            {t("aiPrompt.title")}
           </span>
           <Button
             variant="secondary"
@@ -41,7 +43,7 @@ export function AiPromptPanel({ prompt }: AiPromptPanelProps) {
             className="text-[10px] h-7"
           >
             <Copy className="h-3 w-3 mr-1" />
-            복사
+            {t("aiPrompt.copy")}
           </Button>
         </div>
         <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -50,7 +52,7 @@ export function AiPromptPanel({ prompt }: AiPromptPanelProps) {
           </p>
         </div>
         <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
-          * ChatGPT, Gemini, Claude 등에 그대로 붙여넣어 보세요.
+          {t("aiPrompt.hint")}
         </p>
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@
 
 import type { Category } from "@/types/snippet";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/components/language-provider";
 
 interface CategorySelectorProps {
   categories: Category[];
@@ -14,11 +15,13 @@ export function CategorySelector({
   selectedId,
   onChange,
 }: CategorySelectorProps) {
+  const { t } = useLanguage();
+
   return (
     <Card>
       <CardContent>
         <label className="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-widest">
-          1. 카테고리 선택
+          {t("category.label")}
         </label>
         <select
           value={selectedId}
