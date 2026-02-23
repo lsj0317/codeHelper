@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/components/language-provider";
 
 interface PreviewModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ export function PreviewModal({
   htmlCode,
 }: PreviewModalProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { t } = useLanguage();
 
   const runPreview = useCallback(() => {
     const iframe = iframeRef.current;
@@ -81,10 +83,10 @@ export function PreviewModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            기능 미리보기 (Preview)
+            {t("preview.title")}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            코드 실행 미리보기 화면입니다
+            {t("preview.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 bg-slate-100 dark:bg-black p-4 relative">
@@ -92,19 +94,19 @@ export function PreviewModal({
             <iframe
               ref={iframeRef}
               className="w-full h-full border-none"
-              title="코드 미리보기"
+              title={t("preview.iframeTitle")}
             />
           </div>
         </div>
         <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 text-right rounded-b-2xl">
           <span className="text-xs text-slate-400 mr-2">
-            * 실제 동작 환경과 동일하게 시뮬레이션 됩니다.
+            {t("preview.note")}
           </span>
           <Button
             variant="secondary"
             onClick={() => handleOpenChange(false)}
           >
-            닫기
+            {t("preview.close")}
           </Button>
         </div>
       </DialogContent>

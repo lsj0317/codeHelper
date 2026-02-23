@@ -5,6 +5,7 @@ import type { SnippetItem } from "@/types/snippet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/language-provider";
 
 const PAGE_SIZE = 3;
 
@@ -23,6 +24,7 @@ export function SnippetList({
   page,
   onPageChange,
 }: SnippetListProps) {
+  const { t } = useLanguage();
   const totalPages = Math.ceil(items.length / PAGE_SIZE);
   const pagedItems = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -31,7 +33,7 @@ export function SnippetList({
       <CardContent className="min-h-[140px] flex flex-col justify-between">
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-widest">
-            2. 기능 선택
+            {t("snippetList.label")}
           </label>
           <div className="flex flex-col gap-2">
             {pagedItems.map((item) => (
@@ -50,7 +52,7 @@ export function SnippetList({
             ))}
             {pagedItems.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-4">
-                검색 결과가 없습니다.
+                {t("snippetList.empty")}
               </p>
             )}
           </div>

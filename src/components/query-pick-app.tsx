@@ -16,6 +16,7 @@ import { CodeDisplay } from "@/components/code-display";
 import { DescriptionPanel } from "@/components/description-panel";
 import { AiPromptPanel } from "@/components/ai-prompt-panel";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/components/language-provider";
 
 import { PreviewModal } from "@/components/modals/preview-modal";
 import { ShareModal } from "@/components/modals/share-modal";
@@ -23,6 +24,7 @@ import { PrivacyModal } from "@/components/modals/privacy-modal";
 import { UsageModal } from "@/components/modals/usage-modal";
 
 export function QueryPickApp() {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedItem, setSelectedItem] = useState<SnippetItem | null>(null);
@@ -161,7 +163,7 @@ export function QueryPickApp() {
     return (
       <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-slate-400 text-lg">로딩 중...</div>
+          <div className="animate-pulse text-slate-400 text-lg">{t("app.loading")}</div>
         </div>
       </div>
     );
@@ -175,7 +177,7 @@ export function QueryPickApp() {
         {/* 좌측 광고 영역 (xl 이상) */}
         <aside className="hidden xl:flex w-48 border-r border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
           <div className="w-full h-[600px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400 rounded-xl">
-            광고 영역
+            {t("app.adArea")}
           </div>
         </aside>
 
@@ -232,7 +234,7 @@ export function QueryPickApp() {
                   onClick={() => setPreviewOpen(true)}
                 >
                   <Play className="h-5 w-5 mr-2" />
-                  기능 실행
+                  {t("app.runPreview")}
                 </Button>
                 <Button
                   variant="secondary"
@@ -241,7 +243,7 @@ export function QueryPickApp() {
                   onClick={() => setShareOpen(true)}
                 >
                   <Share2 className="h-5 w-5 mr-2" />
-                  링크 공유
+                  {t("app.shareLink")}
                 </Button>
               </div>
             </div>
@@ -251,7 +253,7 @@ export function QueryPickApp() {
         {/* 우측 광고 영역 (lg 이상) */}
         <aside className="hidden lg:flex w-48 border-l border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
           <div className="w-full h-[600px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400 rounded-xl">
-            광고 영역
+            {t("app.adArea")}
           </div>
         </aside>
       </div>

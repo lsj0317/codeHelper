@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/language-provider";
 
 interface ShareModalProps {
   open: boolean;
@@ -20,11 +21,12 @@ interface ShareModalProps {
 
 export function ShareModal({ open, onOpenChange, shareUrl }: ShareModalProps) {
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      showToast("공유 링크가 복사되었습니다!");
+      showToast(t("share.copied"));
     } catch {
       const textarea = document.createElement("textarea");
       textarea.value = shareUrl;
@@ -32,7 +34,7 @@ export function ShareModal({ open, onOpenChange, shareUrl }: ShareModalProps) {
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      showToast("공유 링크가 복사되었습니다!");
+      showToast(t("share.copied"));
     }
   };
 
@@ -40,21 +42,21 @@ export function ShareModal({ open, onOpenChange, shareUrl }: ShareModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0">
         <DialogHeader>
-          <DialogTitle>링크 공유하기</DialogTitle>
+          <DialogTitle>{t("share.title")}</DialogTitle>
           <DialogDescription className="sr-only">
-            현재 스니펫 설정을 공유할 수 있는 링크입니다
+            {t("share.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-400 mb-2">
-              공유 링크
+              {t("share.label")}
             </label>
             <div className="flex gap-2">
               <Input readOnly value={shareUrl} className="flex-1" />
               <Button onClick={handleCopy}>
                 <Copy className="h-4 w-4 mr-1" />
-                복사
+                {t("share.copy")}
               </Button>
             </div>
           </div>
@@ -62,10 +64,10 @@ export function ShareModal({ open, onOpenChange, shareUrl }: ShareModalProps) {
             variant="kakao"
             className="w-full"
             onClick={() => {
-              showToast("카카오톡 공유 기능은 준비 중입니다.");
+              showToast(t("share.kakaoPending"));
             }}
           >
-            💬 카카오톡으로 공유하기
+            {t("share.kakao")}
           </Button>
         </div>
       </DialogContent>
