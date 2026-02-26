@@ -43,6 +43,7 @@ export const translations = {
     "app.runPreview": "기능 실행",
     "app.shareLink": "링크 공유",
     "app.adArea": "광고 영역",
+    "app.adClose": "광고 닫기",
 
     // Preview Modal
     "preview.title": "기능 미리보기 (Preview)",
@@ -139,6 +140,7 @@ export const translations = {
     "app.runPreview": "Run Preview",
     "app.shareLink": "Share Link",
     "app.adArea": "Ad Space",
+    "app.adClose": "Close ad",
 
     // Preview Modal
     "preview.title": "Preview",
