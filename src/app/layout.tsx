@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { ToastProvider } from "@/components/ui/toast";
@@ -18,6 +19,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adsenseClientId =
+    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-XXXXXXXXXXXXXXXX";
+
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -30,6 +34,8 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
         />
+        {/* Google AdSense */}
+        <meta name="google-adsense-account" content={adsenseClientId} />
       </head>
       <body className="antialiased">
         <ThemeProvider>
@@ -37,6 +43,15 @@ export default function RootLayout({
             <ToastProvider>{children}</ToastProvider>
           </LanguageProvider>
         </ThemeProvider>
+
+        {/* Google AdSense Script - loads asynchronously */}
+        <Script
+          id="adsense-script"
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

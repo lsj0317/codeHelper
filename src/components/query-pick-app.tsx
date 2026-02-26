@@ -23,6 +23,10 @@ import { ShareModal } from "@/components/modals/share-modal";
 import { PrivacyModal } from "@/components/modals/privacy-modal";
 import { UsageModal } from "@/components/modals/usage-modal";
 
+import { SidebarAd } from "@/components/ads/sidebar-ad";
+import { InArticleAd } from "@/components/ads/in-article-ad";
+import { AnchorAd } from "@/components/ads/anchor-ad";
+
 export function QueryPickApp() {
   const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -188,11 +192,11 @@ export function QueryPickApp() {
       <Header onOpenUsageGuide={() => setUsageOpen(true)} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 좌측 광고 영역 (xl 이상) */}
+        {/* 좌측 광고 영역 (xl 이상) - Display 160x600 Skyscraper */}
         <aside className="hidden xl:flex w-48 border-r border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
-          <div className="w-full h-[600px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400 rounded-xl">
-            {t("app.adArea")}
-          </div>
+          <SidebarAd
+            slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_LEFT || "LEFT_SIDEBAR_SLOT"}
+          />
         </aside>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -229,6 +233,12 @@ export function QueryPickApp() {
                 dotColor="bg-blue-500"
                 onCodeChange={setEditedJs}
               />
+
+              {/* 인아티클 광고 - JS코드와 HTML코드 사이 자연스럽게 배치 */}
+              <InArticleAd
+                slot={process.env.NEXT_PUBLIC_AD_SLOT_IN_ARTICLE || "IN_ARTICLE_SLOT"}
+              />
+
               <CodeDisplay
                 code={renderedHtml}
                 language="markup"
@@ -266,15 +276,20 @@ export function QueryPickApp() {
           </div>
         </main>
 
-        {/* 우측 광고 영역 (lg 이상) */}
+        {/* 우측 광고 영역 (lg 이상) - Display 160x600 Skyscraper */}
         <aside className="hidden lg:flex w-48 border-l border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
-          <div className="w-full h-[600px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400 rounded-xl">
-            {t("app.adArea")}
-          </div>
+          <SidebarAd
+            slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_RIGHT || "RIGHT_SIDEBAR_SLOT"}
+          />
         </aside>
       </div>
 
       <Footer onOpenPrivacy={() => setPrivacyOpen(true)} />
+
+      {/* 모바일 하단 고정 앵커 광고 (lg 미만에서만 표시) */}
+      <AnchorAd
+        slot={process.env.NEXT_PUBLIC_AD_SLOT_ANCHOR || "ANCHOR_SLOT"}
+      />
 
       {/* Modals */}
       <PreviewModal
