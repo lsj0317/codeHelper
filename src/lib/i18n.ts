@@ -38,6 +38,17 @@ export const translations = {
     // Description Panel
     "description.title": "로직 설명 (How it works)",
 
+    // Tutorial
+    "tutorial.title": "단계별 코드 학습",
+    "tutorial.textMode": "텍스트",
+    "tutorial.tutorialMode": "단계별 학습",
+    "tutorial.stepOf": "Step {current} / {total}",
+    "tutorial.lineRange": "Lines {start}~{end}",
+    "tutorial.prev": "이전",
+    "tutorial.next": "다음",
+    "tutorial.restart": "처음으로",
+    "tutorial.keyHint": "← → 방향키로 이동",
+
     // AI Prompt Panel
     "aiPrompt.title": "AI에게 질문하기 (Prompt)",
     "aiPrompt.copied": "AI 프롬프트가 복사되었습니다!",
@@ -140,6 +151,17 @@ export const translations = {
 
     // Description Panel
     "description.title": "How it works",
+
+    // Tutorial
+    "tutorial.title": "Step-by-Step Code Tutorial",
+    "tutorial.textMode": "Text",
+    "tutorial.tutorialMode": "Step-by-Step",
+    "tutorial.stepOf": "Step {current} / {total}",
+    "tutorial.lineRange": "Lines {start}~{end}",
+    "tutorial.prev": "Prev",
+    "tutorial.next": "Next",
+    "tutorial.restart": "Restart",
+    "tutorial.keyHint": "Use ← → arrow keys to navigate",
 
     // AI Prompt Panel
     "aiPrompt.title": "Ask AI (Prompt)",
