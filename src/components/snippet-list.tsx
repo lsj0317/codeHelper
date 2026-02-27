@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Plus, Check } from "lucide-react";
 import type { SnippetItem } from "@/types/snippet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ interface SnippetListProps {
   favoriteIds: string[];
   onToggleFavorite?: (itemId: string) => void;
   emptyMessage?: string;
+  // Combo mode props
+  comboMode?: boolean;
+  comboSelectedIds?: string[];
+  onComboToggle?: (item: SnippetItem) => void;
 }
 
 export function SnippetList({
@@ -29,6 +33,9 @@ export function SnippetList({
   favoriteIds,
   onToggleFavorite,
   emptyMessage,
+  comboMode,
+  comboSelectedIds = [],
+  onComboToggle,
 }: SnippetListProps) {
   const { t } = useLanguage();
   const totalPages = Math.ceil(items.length / PAGE_SIZE);
@@ -44,6 +51,64 @@ export function SnippetList({
           <div className="flex flex-col gap-2">
             {pagedItems.map((item) => {
               const isFav = favoriteIds.includes(item.id);
+
+              if (comboMode && onComboToggle) {
+                // ── Combo mode: checkbox-style multi-select ──
+                const isInCombo = comboSelectedIds.includes(item.id);
+                const comboIndex = comboSelectedIds.indexOf(item.id);
+
+                return (
+                  <div key={item.id} className="relative flex items-center gap-1">
+                    <button
+                      onClick={() => onComboToggle(item)}
+                      className={cn(
+                        "flex-1 flex items-center gap-2.5 text-left p-3 rounded-xl text-sm font-medium transition-all cursor-pointer pr-10",
+                        isInCombo
+                          ? "bg-indigo-600 text-white shadow-md"
+                          : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                      )}
+                    >
+                      {/* Checkbox / number badge */}
+                      <span
+                        className={cn(
+                          "shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
+                          isInCombo
+                            ? "bg-white text-indigo-600"
+                            : "border-2 border-slate-300 dark:border-slate-600 text-transparent"
+                        )}
+                      >
+                        {isInCombo ? (
+                          comboIndex + 1
+                        ) : (
+                          <Plus className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                        )}
+                      </span>
+                      {item.name}
+                    </button>
+                    {onToggleFavorite && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleFavorite(item.id);
+                        }}
+                        className={cn(
+                          "absolute right-2 p-1.5 rounded-lg transition-all cursor-pointer",
+                          isFav
+                            ? "text-yellow-400 hover:text-yellow-500"
+                            : isInCombo
+                              ? "text-indigo-200 hover:text-yellow-300"
+                              : "text-slate-300 dark:text-slate-600 hover:text-yellow-400"
+                        )}
+                        title={isFav ? "Remove from favorites" : "Add to favorites"}
+                      >
+                        <Star className="h-4 w-4" fill={isFav ? "currentColor" : "none"} />
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+
+              // ── Normal mode: single select ──
               const isSelected = selectedId === item.id;
 
               return (

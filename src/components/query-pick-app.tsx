@@ -1,22 +1,25 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Play, Share2 } from "lucide-react";
+import { Play, Share2, Layers, MousePointer } from "lucide-react";
 import type { Category, SnippetItem } from "@/types/snippet";
 import { renderTemplate, getDefaultValues, buildShareUrl, parseShareParams } from "@/lib/code-utils";
 import { fetchCategories } from "@/lib/supabase";
 import { getFavorites, toggleFavorite, getRecent, addRecent } from "@/lib/favorites";
+import { mergeComboCode, COMBO_MAX_ITEMS } from "@/lib/combo-utils";
 
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { SearchBar } from "@/components/search-bar";
 import { CategorySelector, FAVORITES_CATEGORY_ID, RECENT_CATEGORY_ID } from "@/components/category-selector";
 import { SnippetList } from "@/components/snippet-list";
+import { ComboBuilder } from "@/components/combo-builder";
 import { InputPanel } from "@/components/input-panel";
 import { CodeDisplay } from "@/components/code-display";
 import { DescriptionPanel } from "@/components/description-panel";
 import { AiPromptPanel } from "@/components/ai-prompt-panel";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/language-provider";
 import { useToast } from "@/components/ui/toast";
 
@@ -44,6 +47,11 @@ export function QueryPickApp() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
 
+  // Combo mode state
+  const [comboMode, setComboMode] = useState(false);
+  const [comboItems, setComboItems] = useState<SnippetItem[]>([]);
+  const [comboInputValues, setComboInputValues] = useState<Record<string, Record<string, string>>>({});
+
   // Modal states
   const [previewOpen, setPreviewOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -57,11 +65,9 @@ export function QueryPickApp() {
         const cats = await fetchCategories();
         setCategories(cats);
 
-        // Load favorites & recent from localStorage
         setFavoriteIds(getFavorites());
         setRecentIds(getRecent());
 
-        // URL 파라미터에서 복원 시도
         const params = new URLSearchParams(window.location.search);
         const restored = parseShareParams(params);
 
@@ -93,7 +99,7 @@ export function QueryPickApp() {
     load();
   }, []);
 
-  // 전체 아이템 플랫 맵 (즐겨찾기/최근 사용에서 ID로 아이템 검색용)
+  // 전체 아이템 플랫 맵
   const allItems = useMemo(
     () => categories.flatMap((cat) => cat.items),
     [categories]
@@ -134,7 +140,7 @@ export function QueryPickApp() {
     return currentCategory?.items ?? [];
   }, [searchQuery, selectedCategoryId, currentCategory, categories, allItems, favoriteIds, recentIds]);
 
-  // 빈 메시지 (즐겨찾기/최근 사용 전용)
+  // 빈 메시지
   const emptyMessage = useMemo(() => {
     if (searchQuery.trim()) return undefined;
     if (selectedCategoryId === FAVORITES_CATEGORY_ID) return t("snippetList.favoritesEmpty");
@@ -149,7 +155,9 @@ export function QueryPickApp() {
       setSearchQuery("");
       setPage(0);
 
-      // 즐겨찾기/최근 사용 카테고리는 첫 아이템 자동 선택 하지 않음
+      // Combo mode: 카테고리 탐색만, 선택 변경 없음
+      if (comboMode) return;
+
       if (catId === FAVORITES_CATEGORY_ID || catId === RECENT_CATEGORY_ID) {
         setSelectedItem(null);
         setInputValues({});
@@ -166,15 +174,73 @@ export function QueryPickApp() {
         setInputValues({});
       }
     },
-    [categories]
+    [categories, comboMode]
   );
 
-  // 아이템 선택 + 최근 사용 기록
+  // 아이템 선택 (단일 모드)
   const handleItemSelect = useCallback((item: SnippetItem) => {
     setSelectedItem(item);
     setInputValues(getDefaultValues(item));
     setRecentIds(addRecent(item.id));
   }, []);
+
+  // ── Combo handlers ──
+
+  const handleComboToggle = useCallback(
+    (item: SnippetItem) => {
+      setComboItems((prev) => {
+        const exists = prev.find((i) => i.id === item.id);
+        if (exists) {
+          showToast(t("combo.removed"));
+          setComboInputValues((vals) => {
+            const copy = { ...vals };
+            delete copy[item.id];
+            return copy;
+          });
+          return prev.filter((i) => i.id !== item.id);
+        }
+        if (prev.length >= COMBO_MAX_ITEMS) {
+          showToast(t("combo.maxReached").replace("{max}", String(COMBO_MAX_ITEMS)));
+          return prev;
+        }
+        showToast(t("combo.added"));
+        setComboInputValues((vals) => ({
+          ...vals,
+          [item.id]: getDefaultValues(item),
+        }));
+        return [...prev, item];
+      });
+    },
+    [showToast, t]
+  );
+
+  const handleComboRemove = useCallback((itemId: string) => {
+    setComboItems((prev) => prev.filter((i) => i.id !== itemId));
+    setComboInputValues((vals) => {
+      const copy = { ...vals };
+      delete copy[itemId];
+      return copy;
+    });
+  }, []);
+
+  const handleComboReorder = useCallback((newItems: SnippetItem[]) => {
+    setComboItems(newItems);
+  }, []);
+
+  const handleComboClearAll = useCallback(() => {
+    setComboItems([]);
+    setComboInputValues({});
+  }, []);
+
+  const handleComboInputChange = useCallback(
+    (itemId: string, inputId: string, value: string) => {
+      setComboInputValues((prev) => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] ?? {}), [inputId]: value },
+      }));
+    },
+    []
+  );
 
   // 즐겨찾기 토글
   const handleToggleFavorite = useCallback(
@@ -190,50 +256,57 @@ export function QueryPickApp() {
     [showToast, t]
   );
 
-  // 입력값 변경
+  // 입력값 변경 (단일 모드)
   const handleInputChange = useCallback((id: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [id]: value }));
   }, []);
 
-  // 렌더링된 코드
+  // ── Rendered code ──
+
+  const comboResult = useMemo(() => {
+    if (!comboMode || comboItems.length === 0) return null;
+    return mergeComboCode(comboItems, comboInputValues);
+  }, [comboMode, comboItems, comboInputValues]);
+
   const renderedJs = useMemo(() => {
+    if (comboMode) return comboResult?.js ?? "";
     if (!selectedItem) return "";
     return renderTemplate(selectedItem.template, inputValues);
-  }, [selectedItem, inputValues]);
+  }, [comboMode, comboResult, selectedItem, inputValues]);
 
   const renderedHtml = useMemo(() => {
+    if (comboMode) return comboResult?.html ?? "";
     if (!selectedItem) return "";
     return renderTemplate(selectedItem.html_example, inputValues);
-  }, [selectedItem, inputValues]);
+  }, [comboMode, comboResult, selectedItem, inputValues]);
 
-  // 편집된 코드 상태 (Monaco Editor에서 수정된 코드)
   const [editedJs, setEditedJs] = useState<string | null>(null);
   const [editedHtml, setEditedHtml] = useState<string | null>(null);
 
-  // 입력값이나 선택 아이템 변경 시 편집 상태 초기화
   useEffect(() => {
     setEditedJs(null);
     setEditedHtml(null);
-  }, [selectedItem, inputValues]);
+  }, [selectedItem, inputValues, comboItems, comboInputValues]);
 
-  // Preview에 사용할 최종 코드
   const finalJs = editedJs ?? renderedJs;
   const finalHtml = editedHtml ?? renderedHtml;
 
   const renderedPrompt = useMemo(() => {
+    if (comboMode) return comboResult?.prompt ?? "";
     if (!selectedItem) return "";
     return renderTemplate(selectedItem.ai_prompt, inputValues);
-  }, [selectedItem, inputValues]);
+  }, [comboMode, comboResult, selectedItem, inputValues]);
 
   const renderedDesc = useMemo(() => {
+    if (comboMode) return comboResult?.description ?? "";
     if (!selectedItem) return "";
     return renderTemplate(selectedItem.description, inputValues);
-  }, [selectedItem, inputValues]);
+  }, [comboMode, comboResult, selectedItem, inputValues]);
 
   // 공유 URL
   const shareUrl = useMemo(() => {
+    if (comboMode) return "";
     if (!selectedItem || !selectedCategoryId) return "";
-    // 즐겨찾기/최근 사용 카테고리일 때는 아이템의 원래 카테고리 찾기
     let catId = selectedCategoryId;
     if (catId === FAVORITES_CATEGORY_ID || catId === RECENT_CATEGORY_ID) {
       const originalCat = categories.find((c) =>
@@ -243,7 +316,12 @@ export function QueryPickApp() {
     }
     const base = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
     return buildShareUrl(base, catId, selectedItem.id, inputValues);
-  }, [selectedCategoryId, selectedItem, inputValues, categories]);
+  }, [comboMode, selectedCategoryId, selectedItem, inputValues, categories]);
+
+  const comboSelectedIds = useMemo(
+    () => comboItems.map((i) => i.id),
+    [comboItems]
+  );
 
   if (loading) {
     return (
@@ -260,16 +338,14 @@ export function QueryPickApp() {
       <Header onOpenUsageGuide={() => setUsageOpen(true)} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 좌측 광고 영역 (xl 이상) - Display 160x600 Skyscraper */}
+        {/* 좌측 광고 영역 */}
         <aside className="hidden xl:flex w-48 border-r border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
-          <SidebarAd
-            slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_LEFT || "LEFT_SIDEBAR_SLOT"}
-          />
+          <SidebarAd slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_LEFT || "LEFT_SIDEBAR_SLOT"} />
         </aside>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* 좌측 패널: 검색, 카테고리, 리스트, 입력 */}
+            {/* 좌측 패널 */}
             <div className="lg:col-span-5 space-y-4 lg:space-y-6">
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
               <CategorySelector
@@ -279,43 +355,91 @@ export function QueryPickApp() {
                 favoritesCount={favoriteIds.length}
                 recentCount={recentIds.length}
               />
+
+              {/* Mode toggle: Single / Combo */}
+              <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                <button
+                  onClick={() => setComboMode(false)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    !comboMode
+                      ? "bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-sm"
+                      : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                  )}
+                >
+                  <MousePointer className="h-3.5 w-3.5" />
+                  {t("combo.singleMode")}
+                </button>
+                <button
+                  onClick={() => setComboMode(true)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    comboMode
+                      ? "bg-indigo-500 text-white shadow-sm"
+                      : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                  )}
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  {t("combo.comboMode")}
+                  {comboItems.length > 0 && (
+                    <span className="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                      {comboItems.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
               <SnippetList
                 items={filteredItems}
-                selectedId={selectedItem?.id ?? null}
+                selectedId={comboMode ? null : (selectedItem?.id ?? null)}
                 onSelect={handleItemSelect}
                 page={page}
                 onPageChange={setPage}
                 favoriteIds={favoriteIds}
                 onToggleFavorite={handleToggleFavorite}
                 emptyMessage={emptyMessage}
+                comboMode={comboMode}
+                comboSelectedIds={comboSelectedIds}
+                onComboToggle={handleComboToggle}
               />
+
+              {/* Combo Builder (only in combo mode) */}
+              {comboMode && (
+                <ComboBuilder
+                  items={comboItems}
+                  onRemove={handleComboRemove}
+                  onReorder={handleComboReorder}
+                  onClearAll={handleComboClearAll}
+                />
+              )}
+
               <InputPanel
-                item={selectedItem}
+                item={comboMode ? null : selectedItem}
                 values={inputValues}
                 onChange={handleInputChange}
+                comboItems={comboMode ? comboItems : undefined}
+                comboValues={comboMode ? comboInputValues : undefined}
+                onComboChange={comboMode ? handleComboInputChange : undefined}
               />
             </div>
 
-            {/* 우측 패널: 코드 디스플레이, 설명, 프롬프트, 버튼 */}
+            {/* 우측 패널 */}
             <div className="lg:col-span-7 space-y-4 lg:space-y-6">
               <CodeDisplay
                 code={renderedJs}
                 language="javascript"
-                label="JAVASCRIPT (JQUERY)"
-                colorClass="text-blue-600 dark:text-blue-400"
-                dotColor="bg-blue-500"
+                label={comboMode && comboItems.length > 1 ? "JAVASCRIPT (COMBO)" : "JAVASCRIPT (JQUERY)"}
+                colorClass={comboMode && comboItems.length > 0 ? "text-indigo-600 dark:text-indigo-400" : "text-blue-600 dark:text-blue-400"}
+                dotColor={comboMode && comboItems.length > 0 ? "bg-indigo-500" : "bg-blue-500"}
                 onCodeChange={setEditedJs}
               />
 
-              {/* 인아티클 광고 - JS코드와 HTML코드 사이 자연스럽게 배치 */}
-              <InArticleAd
-                slot={process.env.NEXT_PUBLIC_AD_SLOT_IN_ARTICLE || "IN_ARTICLE_SLOT"}
-              />
+              <InArticleAd slot={process.env.NEXT_PUBLIC_AD_SLOT_IN_ARTICLE || "IN_ARTICLE_SLOT"} />
 
               <CodeDisplay
                 code={renderedHtml}
                 language="markup"
-                label="HTML EXAMPLE"
+                label={comboMode && comboItems.length > 1 ? "HTML (COMBO)" : "HTML EXAMPLE"}
                 colorClass="text-emerald-600 dark:text-emerald-400"
                 dotColor="bg-emerald-500"
                 onCodeChange={setEditedHtml}
@@ -349,20 +473,15 @@ export function QueryPickApp() {
           </div>
         </main>
 
-        {/* 우측 광고 영역 (lg 이상) - Display 160x600 Skyscraper */}
+        {/* 우측 광고 영역 */}
         <aside className="hidden lg:flex w-48 border-l border-slate-200 dark:border-slate-800 p-4 justify-center bg-slate-50 dark:bg-slate-950 shrink-0">
-          <SidebarAd
-            slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_RIGHT || "RIGHT_SIDEBAR_SLOT"}
-          />
+          <SidebarAd slot={process.env.NEXT_PUBLIC_AD_SLOT_SIDEBAR_RIGHT || "RIGHT_SIDEBAR_SLOT"} />
         </aside>
       </div>
 
       <Footer onOpenPrivacy={() => setPrivacyOpen(true)} />
 
-      {/* 모바일 하단 고정 앵커 광고 (lg 미만에서만 표시) */}
-      <AnchorAd
-        slot={process.env.NEXT_PUBLIC_AD_SLOT_ANCHOR || "ANCHOR_SLOT"}
-      />
+      <AnchorAd slot={process.env.NEXT_PUBLIC_AD_SLOT_ANCHOR || "ANCHOR_SLOT"} />
 
       {/* Modals */}
       <PreviewModal

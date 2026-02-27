@@ -55,6 +55,16 @@ export const translations = {
     "aiPrompt.copy": "복사",
     "aiPrompt.hint": "* ChatGPT, Gemini, Claude 등에 그대로 붙여넣어 보세요.",
 
+    // Combo
+    "combo.singleMode": "단일",
+    "combo.comboMode": "조합",
+    "combo.builderLabel": "조합 목록",
+    "combo.clearAll": "전체 삭제",
+    "combo.emptyHint": "스니펫 목록에서 기능을 선택하여 조합하세요.",
+    "combo.maxReached": "최대 {max}개까지 조합할 수 있습니다.",
+    "combo.added": "조합에 추가했습니다.",
+    "combo.removed": "조합에서 제거했습니다.",
+
     // Main App
     "app.loading": "로딩 중...",
     "app.runPreview": "기능 실행",
@@ -168,6 +178,16 @@ export const translations = {
     "aiPrompt.copied": "AI prompt copied!",
     "aiPrompt.copy": "Copy",
     "aiPrompt.hint": "* Paste this directly into ChatGPT, Gemini, Claude, etc.",
+
+    // Combo
+    "combo.singleMode": "Single",
+    "combo.comboMode": "Combo",
+    "combo.builderLabel": "Combo List",
+    "combo.clearAll": "Clear all",
+    "combo.emptyHint": "Select snippets from the list to combine them.",
+    "combo.maxReached": "Maximum {max} snippets can be combined.",
+    "combo.added": "Added to combo.",
+    "combo.removed": "Removed from combo.",
 
     // Main App
     "app.loading": "Loading...",
