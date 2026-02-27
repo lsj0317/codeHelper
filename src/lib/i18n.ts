@@ -11,10 +11,16 @@ export const translations = {
 
     // Category
     "category.label": "1. 카테고리 선택",
+    "category.favorites": "즐겨찾기",
+    "category.recent": "최근 사용",
 
     // Snippet List
     "snippetList.label": "2. 기능 선택",
     "snippetList.empty": "검색 결과가 없습니다.",
+    "snippetList.favoritesEmpty": "즐겨찾기한 스니펫이 없습니다.\n스니펫 옆 ☆ 를 눌러 추가하세요.",
+    "snippetList.recentEmpty": "최근 사용한 스니펫이 없습니다.",
+    "snippetList.favoriteAdded": "즐겨찾기에 추가했습니다.",
+    "snippetList.favoriteRemoved": "즐겨찾기에서 제거했습니다.",
 
     // Input Panel
     "input.label": "3. 정보 입력",
@@ -108,10 +114,16 @@ export const translations = {
 
     // Category
     "category.label": "1. Select Category",
+    "category.favorites": "Favorites",
+    "category.recent": "Recent",
 
     // Snippet List
     "snippetList.label": "2. Select Function",
     "snippetList.empty": "No results found.",
+    "snippetList.favoritesEmpty": "No favorites yet.\nTap the ☆ icon to add snippets.",
+    "snippetList.recentEmpty": "No recently used snippets.",
+    "snippetList.favoriteAdded": "Added to favorites.",
+    "snippetList.favoriteRemoved": "Removed from favorites.",
 
     // Input Panel
     "input.label": "3. Enter Info",

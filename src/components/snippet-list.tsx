@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { SnippetItem } from "@/types/snippet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ interface SnippetListProps {
   onSelect: (item: SnippetItem) => void;
   page: number;
   onPageChange: (page: number) => void;
+  favoriteIds: string[];
+  onToggleFavorite?: (itemId: string) => void;
+  emptyMessage?: string;
 }
 
 export function SnippetList({
@@ -23,6 +26,9 @@ export function SnippetList({
   onSelect,
   page,
   onPageChange,
+  favoriteIds,
+  onToggleFavorite,
+  emptyMessage,
 }: SnippetListProps) {
   const { t } = useLanguage();
   const totalPages = Math.ceil(items.length / PAGE_SIZE);
@@ -36,23 +42,51 @@ export function SnippetList({
             {t("snippetList.label")}
           </label>
           <div className="flex flex-col gap-2">
-            {pagedItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onSelect(item)}
-                className={cn(
-                  "w-full text-left p-3 rounded-xl text-sm font-medium transition-all cursor-pointer",
-                  selectedId === item.id
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                )}
-              >
-                {item.name}
-              </button>
-            ))}
+            {pagedItems.map((item) => {
+              const isFav = favoriteIds.includes(item.id);
+              const isSelected = selectedId === item.id;
+
+              return (
+                <div key={item.id} className="relative flex items-center gap-1">
+                  <button
+                    onClick={() => onSelect(item)}
+                    className={cn(
+                      "flex-1 text-left p-3 rounded-xl text-sm font-medium transition-all cursor-pointer pr-10",
+                      isSelected
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    )}
+                  >
+                    {item.name}
+                  </button>
+                  {onToggleFavorite && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(item.id);
+                      }}
+                      className={cn(
+                        "absolute right-2 p-1.5 rounded-lg transition-all cursor-pointer",
+                        isFav
+                          ? "text-yellow-400 hover:text-yellow-500"
+                          : isSelected
+                            ? "text-blue-200 hover:text-yellow-300"
+                            : "text-slate-300 dark:text-slate-600 hover:text-yellow-400"
+                      )}
+                      title={isFav ? "Remove from favorites" : "Add to favorites"}
+                    >
+                      <Star
+                        className="h-4 w-4"
+                        fill={isFav ? "currentColor" : "none"}
+                      />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             {pagedItems.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-4">
-                {t("snippetList.empty")}
+              <p className="text-sm text-slate-400 text-center py-4 whitespace-pre-line">
+                {emptyMessage || t("snippetList.empty")}
               </p>
             )}
           </div>

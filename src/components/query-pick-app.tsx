@@ -5,11 +5,12 @@ import { Play, Share2 } from "lucide-react";
 import type { Category, SnippetItem } from "@/types/snippet";
 import { renderTemplate, getDefaultValues, buildShareUrl, parseShareParams } from "@/lib/code-utils";
 import { fetchCategories } from "@/lib/supabase";
+import { getFavorites, toggleFavorite, getRecent, addRecent } from "@/lib/favorites";
 
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { SearchBar } from "@/components/search-bar";
-import { CategorySelector } from "@/components/category-selector";
+import { CategorySelector, FAVORITES_CATEGORY_ID, RECENT_CATEGORY_ID } from "@/components/category-selector";
 import { SnippetList } from "@/components/snippet-list";
 import { InputPanel } from "@/components/input-panel";
 import { CodeDisplay } from "@/components/code-display";
@@ -17,6 +18,7 @@ import { DescriptionPanel } from "@/components/description-panel";
 import { AiPromptPanel } from "@/components/ai-prompt-panel";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
+import { useToast } from "@/components/ui/toast";
 
 import { PreviewModal } from "@/components/modals/preview-modal";
 import { ShareModal } from "@/components/modals/share-modal";
@@ -29,6 +31,7 @@ import { AnchorAd } from "@/components/ads/anchor-ad";
 
 export function QueryPickApp() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedItem, setSelectedItem] = useState<SnippetItem | null>(null);
@@ -36,6 +39,10 @@ export function QueryPickApp() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  // Favorites & Recent state
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
 
   // Modal states
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -49,6 +56,10 @@ export function QueryPickApp() {
       try {
         const cats = await fetchCategories();
         setCategories(cats);
+
+        // Load favorites & recent from localStorage
+        setFavoriteIds(getFavorites());
+        setRecentIds(getRecent());
 
         // URL 파라미터에서 복원 시도
         const params = new URLSearchParams(window.location.search);
@@ -82,28 +93,54 @@ export function QueryPickApp() {
     load();
   }, []);
 
+  // 전체 아이템 플랫 맵 (즐겨찾기/최근 사용에서 ID로 아이템 검색용)
+  const allItems = useMemo(
+    () => categories.flatMap((cat) => cat.items),
+    [categories]
+  );
+
   // 현재 카테고리
   const currentCategory = useMemo(
     () => categories.find((c) => c.id === selectedCategoryId),
     [categories, selectedCategoryId]
   );
 
-  // 검색 필터링
+  // 검색 필터링 + 즐겨찾기/최근 사용 처리
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return currentCategory?.items ?? [];
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      return categories.flatMap((cat) =>
+        cat.items.filter(
+          (item) =>
+            item.name.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query) ||
+            item.template.toLowerCase().includes(query)
+        )
+      );
     }
-    const query = searchQuery.toLowerCase();
-    // 검색 시 전체 카테고리에서 필터링
-    return categories.flatMap((cat) =>
-      cat.items.filter(
-        (item) =>
-          item.name.toLowerCase().includes(query) ||
-          item.description.toLowerCase().includes(query) ||
-          item.template.toLowerCase().includes(query)
-      )
-    );
-  }, [searchQuery, currentCategory, categories]);
+
+    if (selectedCategoryId === FAVORITES_CATEGORY_ID) {
+      return favoriteIds
+        .map((id) => allItems.find((item) => item.id === id))
+        .filter((item): item is SnippetItem => item !== undefined);
+    }
+
+    if (selectedCategoryId === RECENT_CATEGORY_ID) {
+      return recentIds
+        .map((id) => allItems.find((item) => item.id === id))
+        .filter((item): item is SnippetItem => item !== undefined);
+    }
+
+    return currentCategory?.items ?? [];
+  }, [searchQuery, selectedCategoryId, currentCategory, categories, allItems, favoriteIds, recentIds]);
+
+  // 빈 메시지 (즐겨찾기/최근 사용 전용)
+  const emptyMessage = useMemo(() => {
+    if (searchQuery.trim()) return undefined;
+    if (selectedCategoryId === FAVORITES_CATEGORY_ID) return t("snippetList.favoritesEmpty");
+    if (selectedCategoryId === RECENT_CATEGORY_ID) return t("snippetList.recentEmpty");
+    return undefined;
+  }, [searchQuery, selectedCategoryId, t]);
 
   // 카테고리 변경
   const handleCategoryChange = useCallback(
@@ -111,6 +148,14 @@ export function QueryPickApp() {
       setSelectedCategoryId(catId);
       setSearchQuery("");
       setPage(0);
+
+      // 즐겨찾기/최근 사용 카테고리는 첫 아이템 자동 선택 하지 않음
+      if (catId === FAVORITES_CATEGORY_ID || catId === RECENT_CATEGORY_ID) {
+        setSelectedItem(null);
+        setInputValues({});
+        return;
+      }
+
       const cat = categories.find((c) => c.id === catId);
       if (cat && cat.items.length > 0) {
         const firstItem = cat.items[0];
@@ -124,11 +169,26 @@ export function QueryPickApp() {
     [categories]
   );
 
-  // 아이템 선택
+  // 아이템 선택 + 최근 사용 기록
   const handleItemSelect = useCallback((item: SnippetItem) => {
     setSelectedItem(item);
     setInputValues(getDefaultValues(item));
+    setRecentIds(addRecent(item.id));
   }, []);
+
+  // 즐겨찾기 토글
+  const handleToggleFavorite = useCallback(
+    (itemId: string) => {
+      const newFavs = toggleFavorite(itemId);
+      setFavoriteIds(newFavs);
+      if (newFavs.includes(itemId)) {
+        showToast(t("snippetList.favoriteAdded"));
+      } else {
+        showToast(t("snippetList.favoriteRemoved"));
+      }
+    },
+    [showToast, t]
+  );
 
   // 입력값 변경
   const handleInputChange = useCallback((id: string, value: string) => {
@@ -173,9 +233,17 @@ export function QueryPickApp() {
   // 공유 URL
   const shareUrl = useMemo(() => {
     if (!selectedItem || !selectedCategoryId) return "";
+    // 즐겨찾기/최근 사용 카테고리일 때는 아이템의 원래 카테고리 찾기
+    let catId = selectedCategoryId;
+    if (catId === FAVORITES_CATEGORY_ID || catId === RECENT_CATEGORY_ID) {
+      const originalCat = categories.find((c) =>
+        c.items.some((i) => i.id === selectedItem.id)
+      );
+      catId = originalCat?.id ?? selectedCategoryId;
+    }
     const base = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
-    return buildShareUrl(base, selectedCategoryId, selectedItem.id, inputValues);
-  }, [selectedCategoryId, selectedItem, inputValues]);
+    return buildShareUrl(base, catId, selectedItem.id, inputValues);
+  }, [selectedCategoryId, selectedItem, inputValues, categories]);
 
   if (loading) {
     return (
@@ -208,6 +276,8 @@ export function QueryPickApp() {
                 categories={categories}
                 selectedId={selectedCategoryId}
                 onChange={handleCategoryChange}
+                favoritesCount={favoriteIds.length}
+                recentCount={recentIds.length}
               />
               <SnippetList
                 items={filteredItems}
@@ -215,6 +285,9 @@ export function QueryPickApp() {
                 onSelect={handleItemSelect}
                 page={page}
                 onPageChange={setPage}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={handleToggleFavorite}
+                emptyMessage={emptyMessage}
               />
               <InputPanel
                 item={selectedItem}
