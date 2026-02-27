@@ -65,6 +65,22 @@ export const translations = {
     "combo.added": "조합에 추가했습니다.",
     "combo.removed": "조합에서 제거했습니다.",
 
+    // Export
+    "export.title": "코드 내보내기",
+    "export.description": "코드를 다양한 형태로 내보낼 수 있습니다",
+    "export.downloadLabel": "파일 다운로드",
+    "export.file": "파일",
+    "export.onlineLabel": "온라인 에디터에서 열기",
+    "export.downloadStarted": "다운로드가 시작되었습니다!",
+    "export.gistTokenPlaceholder": "GitHub Personal Access Token",
+    "export.gistHint": "* Settings → Developer settings → Personal access tokens → 'gist' 권한으로 생성하세요. 토큰은 브라우저에 저장됩니다.",
+    "export.gistCreate": "Gist 생성",
+    "export.gistLoading": "생성 중...",
+    "export.gistCreated": "Gist가 생성되었습니다!",
+    "export.gistFailed": "Gist 생성 실패",
+    "export.gistTokenRequired": "GitHub 토큰을 입력해주세요.",
+    "export.button": "내보내기",
+
     // Main App
     "app.loading": "로딩 중...",
     "app.runPreview": "기능 실행",
@@ -188,6 +204,22 @@ export const translations = {
     "combo.maxReached": "Maximum {max} snippets can be combined.",
     "combo.added": "Added to combo.",
     "combo.removed": "Removed from combo.",
+
+    // Export
+    "export.title": "Export Code",
+    "export.description": "Export your code in various formats",
+    "export.downloadLabel": "File Download",
+    "export.file": "file",
+    "export.onlineLabel": "Open in Online Editor",
+    "export.downloadStarted": "Download started!",
+    "export.gistTokenPlaceholder": "GitHub Personal Access Token",
+    "export.gistHint": "* Go to Settings → Developer settings → Personal access tokens and create one with 'gist' scope. Token is saved in your browser.",
+    "export.gistCreate": "Create Gist",
+    "export.gistLoading": "Creating...",
+    "export.gistCreated": "Gist created!",
+    "export.gistFailed": "Gist creation failed",
+    "export.gistTokenRequired": "Please enter a GitHub token.",
+    "export.button": "Export",
 
     // Main App
     "app.loading": "Loading...",

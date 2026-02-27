@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Play, Share2, Layers, MousePointer } from "lucide-react";
+import { Play, Share2, Layers, MousePointer, Download } from "lucide-react";
 import type { Category, SnippetItem } from "@/types/snippet";
 import { renderTemplate, getDefaultValues, buildShareUrl, parseShareParams } from "@/lib/code-utils";
 import { fetchCategories } from "@/lib/supabase";
@@ -25,6 +25,7 @@ import { useToast } from "@/components/ui/toast";
 
 import { PreviewModal } from "@/components/modals/preview-modal";
 import { ShareModal } from "@/components/modals/share-modal";
+import { ExportModal } from "@/components/modals/export-modal";
 import { PrivacyModal } from "@/components/modals/privacy-modal";
 import { UsageModal } from "@/components/modals/usage-modal";
 
@@ -55,6 +56,7 @@ export function QueryPickApp() {
   // Modal states
   const [previewOpen, setPreviewOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
 
@@ -450,23 +452,32 @@ export function QueryPickApp() {
                 <AiPromptPanel prompt={renderedPrompt} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <Button
                   size="lg"
-                  className="py-6 rounded-2xl font-bold text-base"
+                  className="py-6 rounded-2xl font-bold text-sm"
                   onClick={() => setPreviewOpen(true)}
                 >
-                  <Play className="h-5 w-5 mr-2" />
+                  <Play className="h-4 w-4 mr-1.5" />
                   {t("app.runPreview")}
                 </Button>
                 <Button
                   variant="secondary"
                   size="lg"
-                  className="py-6 rounded-2xl font-bold text-base"
+                  className="py-6 rounded-2xl font-bold text-sm"
                   onClick={() => setShareOpen(true)}
                 >
-                  <Share2 className="h-5 w-5 mr-2" />
+                  <Share2 className="h-4 w-4 mr-1.5" />
                   {t("app.shareLink")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="py-6 rounded-2xl font-bold text-sm"
+                  onClick={() => setExportOpen(true)}
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  {t("export.button")}
                 </Button>
               </div>
             </div>
@@ -494,6 +505,13 @@ export function QueryPickApp() {
         open={shareOpen}
         onOpenChange={setShareOpen}
         shareUrl={shareUrl}
+      />
+      <ExportModal
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        jsCode={finalJs}
+        htmlCode={finalHtml}
+        title={comboMode ? "QueryPick Combo" : (selectedItem?.name ?? "QueryPick Snippet")}
       />
       <PrivacyModal open={privacyOpen} onOpenChange={setPrivacyOpen} />
       <UsageModal open={usageOpen} onOpenChange={setUsageOpen} />
